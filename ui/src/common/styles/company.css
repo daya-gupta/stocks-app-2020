@@ -1,0 +1,38 @@
+.search-container{
+    position: relative;
+}
+.search-container-inner{
+    /* position: absolute; */
+    background: #eee;
+    width: 100%;
+}
+
+/* .search-result {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    background-color: #ddd;
+    transform: translate(50%)
+} */
+
+.search-result-container {
+    position: absolute;
+    width: 100%;
+    z-index: 99
+}
+
+.search-result {
+    margin-right: 30px;
+    padding: 0;
+}
+
+.search-result-option {
+    list-style-type: none;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 4px 0;
+}
+
+ul#search-typeahead {
+    display: none !important;
+}

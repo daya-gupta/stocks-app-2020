@@ -1,0 +1,86 @@
+@keyframes error-bar-animation {
+    0% {
+        bottom: -50px;
+    }
+    100% {
+        bottom: 0;
+    }
+}
+// @keyframes error-bar-animation-2 {
+//     100% {
+//         bottom: 0;
+//     }
+//     0% {
+//         bottom: -50px;
+//     }
+// }
+
+.error-bar {
+    padding: 10px 17px;
+    background-color: #ffe188;
+    border: 1px solid transparent;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 99;
+    animation: error-bar-animation .5s;
+    // animation: error-bar-animation-2 .5s;
+    &.error {
+        color: #e75178;
+        .custom-button {
+            color: #e75178;
+        }
+    }
+    &.warning {
+        color: #ffc107;
+        .custom-button {
+            color: #ffc107;
+        }
+    }
+    &.success {
+        color: green;
+        .custom-button {
+            color: green;
+        }
+    }
+    button.close {
+        font-size: 24px;
+        font-weight: bold;
+        opacity: 1;
+    }
+      
+}
+  
+.custom-button {
+  border: 0;
+  background: transparent;
+}
+
+.toggleWatchlistContainer {
+    font-size: 11px;
+    li {
+        text-align: left;
+        padding: 4px;
+        &:hover {
+            background-color: #ccc;
+        }
+    }
+    .listContainer {
+        position: absolute;
+        right: 0;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    .addWatchlistContainer {
+        position: relative;
+        > div {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    }
+}

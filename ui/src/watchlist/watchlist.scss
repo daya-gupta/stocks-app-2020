@@ -1,0 +1,44 @@
+.coloredCircle {
+  height: 16px;
+  width: 16px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background-color: grey;
+  margin: 6px;
+  display: inline-block;
+}
+
+.coloredCircle.a {
+  background-color: blue;
+}
+
+.coloredCircle.b {
+  background-color: orange;
+}
+
+.coloredCircle.c {
+  background-color: red;
+}
+
+.moreActions {
+  position: absolute;
+  border: 1px solid #aaa;
+  width: 140px;
+  text-align: left;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 6px;
+  .coloredCircles {
+    cursor: pointer;
+  }
+  li.moveOptions {
+    text-align: left;
+    list-style: none;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}

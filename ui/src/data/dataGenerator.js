@@ -1,0 +1,6 @@
+var names = "ACC Ltd.,AU Small Finance Bank Ltd.,Adani Ports and Special Economic Zone Ltd.,Adani Power Ltd.,Aditya Birla Capital Ltd.,Aditya Birla Fashion and Retail Ltd.,Ajanta Pharmaceuticals Ltd.,Alkem Laboratories Ltd.,Amara Raja Batteries Ltd.,Ambuja Cements Ltd.,Apollo Hospitals Enterprise Ltd.,Apollo Tyres Ltd.,Ashok Leyland Ltd.,Asian Paints Ltd.,Aurobindo Pharma Ltd.,Avenue Supermarts Ltd.,Axis Bank Ltd.,Bajaj Auto Ltd.,Bajaj Finance Ltd.,Bajaj Finserv Ltd.,Bajaj Holdings & Investment Ltd.,Balkrishna Industries Ltd.,Bandhan Bank Ltd.,Bank of Baroda,Bank of India,Bata India Ltd.,Berger Paints India Ltd.,Bharat Electronics Ltd.,Bharat Forge Ltd.".split(',');
+var ids = "ACC,AUBANK,ADANIPORTS,ADANIPOWER,ABCAPITAL,ABFRL,AJANTPHARM,ALKEM,AMARAJABAT,AMBUJACEM,APOLLOHOSP,APOLLOTYRE,ASHOKLEY,ASIANPAINT,AUROPHARMA,DMART,AXISBANK,BAJAJ-AUTO,BAJFINANCE,BAJAJFINSV,BAJAJHLDNG,BALKRISIND,BANDHANBNK,BANKBARODA,BANKINDIA,BATAINDIA,BERGEPAINT,BEL,BHARATFORG".split(',');
+
+var watchlistBse200 = ids.map((item, index) => ({id: item, name: names[index]}));
+
+console.log(watchlistBse200);
