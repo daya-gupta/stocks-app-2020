@@ -11,9 +11,8 @@ import WatchlistRow from './components/watchlistRow';
 import ChartRender from '../components/BasicChart'
 import '../common/styles/watchlist.css';
 import {calculateGrowthScore, calculatePriceChange, calculateAveragePriceChange,
-    setActiveWatchlistData, getActiveWatchlistData, setStorageData, getStorageData} from '../common/util'
+    setActiveWatchlistData, getActiveWatchlistData, setStorageData, getStorageData, weeksArr} from '../common/util'
 
-const weeksArr = [0, 1, 2, 4, 9, 13, 26, 52, 72];
 // var ref = window.firebase.database().ref();
 
 // ref.on("value", function(snapshot) {
@@ -59,9 +58,26 @@ class Watchlist extends React.Component {
                     growthScoreArr.push(calculateGrowthScore(processedData));
                 });
                 watchlist.companies.forEach((element, index) => {
-                    const priceVolumeDataItem = priceVolumeData[index];
+                    const priceVolumeDataItem = priceVolumeData[2 * index];
+                    const priceVolumeDataItem1 = priceVolumeData[2 * index + 1];
                     const price = [...priceVolumeDataItem.data.datasets[0].values.map(item => Number(item[1]))];
+                    const price1 = [...priceVolumeDataItem1.data.datasets[0].values.map(item => Number(item[1]))];
+                    const lastPrice = price1.pop();
+                    const secondLastPrice = price1.pop();
+                    // price.pop();
+                    // price.push(secondLastPrice);
+                    // price.push(lastPrice);
+                    price.splice(price.length - 1, 1, secondLastPrice, lastPrice);
+
                     const volume = [...priceVolumeDataItem.data.datasets[1].values.map(item => Number(item[1]))];
+                    const volume1 = [...priceVolumeDataItem1.data.datasets[1].values.map(item => Number(item[1]))];
+                    const lastVolume = volume1.pop();
+                    const secondLastVolume = volume1.pop();
+                    // price.pop();
+                    // price.push(secondLastPrice);
+                    // price.push(lastPrice);
+                    volume.splice(volume.length - 1, 1, secondLastVolume, lastVolume);
+
                     const change = this.calculateChange(index, { price, volume });
                     // const priceChange = [calculatePriceChange(price, 0), calculatePriceChange(price, 1), calculatePriceChange(price, 2), calculatePriceChange(price, 4), calculatePriceChange(price, 8)]
                     const priceChange = this.getPriceChange(price, weeksArr);
@@ -87,10 +103,27 @@ class Watchlist extends React.Component {
         });
     }
 
+    calculatePriceChange = (prices, noOfWeeks) => {
+        // const days = noOfWeeks === 0 ? 1 : noOfWeeks * 5;
+        const offset = noOfWeeks ? noOfWeeks + 1 : 1;
+        // const latestPrice = prices[prices.length - 1] || 0;
+        // const previousPrice = prices[prices.length - 1 - days] || prices[0] || 1;
+        const latestPrice = prices[0] || 0;
+        const previousPrice = prices[offset];
+        let change = 'NA';
+        if (previousPrice) {
+            change = (latestPrice - previousPrice)/previousPrice;
+            change = (change * 100).toFixed(2);
+        }
+        return change;
+      }
+
     getPriceChange = (price, weeks = weeksArr) => {
         const priceChange = [];
+        price = price.slice(0).reverse();
+        // price.splice(1, 1);
         for (const w of weeks) {
-            priceChange[w] = calculatePriceChange(price, w);
+            priceChange[w] = this.calculatePriceChange(price, w);
         }
         return priceChange;
     }
@@ -122,7 +155,38 @@ class Watchlist extends React.Component {
             watchlistDataItem.checked = checked;
         }
         setActiveWatchlistData(watchlist);
-        this.setState({ watchlist, watchlistData })    
+        this.setState({ watchlist, watchlistData });
+    }
+
+    compare = (param) => {
+        if (!param) {
+            const { watchlist, watchlistData } = this.localData;
+            this.setState({
+                watchlist,
+                watchlistData,
+                averagePriceChange: this.getAveragePriceChange(watchlistData, weeksArr),
+                compare: false 
+            });
+            this.localData = {};
+            return;
+        }
+        const { watchlistData, watchlist } = this.state;
+        const newWatchlistData = watchlistData.filter(item => item.checked);
+        const newWatchlist = {...watchlist, companies: []};
+        for (let item of newWatchlistData) {
+            const matchingIndexInWatchlist = watchlist.companies.findIndex(item2 => item2.name === item.name);
+            newWatchlist.companies.push(watchlist.companies[matchingIndexInWatchlist]);
+        }
+        this.localData = {
+            watchlist,
+            watchlistData
+        };
+        this.setState({
+            watchlist: newWatchlist,
+            watchlistData: newWatchlistData,
+            averagePriceChange: this.getAveragePriceChange(newWatchlistData, weeksArr),
+            compare: true
+        });
     }
 
     removeStock = (index) => {
@@ -203,12 +267,14 @@ class Watchlist extends React.Component {
         watchlistData.sort((a, b) => {
             if (param.indexOf('priceChange') !== -1) {
                 const paramSplits = param.split('.');
-                return a[paramSplits[0]][paramSplits[1]] - b[paramSplits[0]][paramSplits[1]];
+                const aValue = a[paramSplits[0]][paramSplits[1]];
+                const bValue = b[paramSplits[0]][paramSplits[1]];
+                return aValue - bValue || isNaN(aValue) - isNaN(bValue);
             } else {
                 if (numericSort) {
                     return a[param] - b[param];
                 }
-                return a[param].toLowerCase() > b[param].toLowerCase() ? 1 : -1;
+                return (a[param] || '').toLowerCase() > (b[param] || '').toLowerCase() ? 1 : -1;
             }
         });
         if (!sortOrder) {
@@ -297,16 +363,26 @@ class Watchlist extends React.Component {
         );
     }
 
+    renderCompareView = () => {
+        return (
+            <div>
+                {!this.state.compare && <button onClick={() => this.compare(true)} className="btn">Compare selected stocks &gt;</button>}
+                {this.state.compare && <button onClick={() => this.compare(false)} className="btn">Back to Main view &gt;</button>}
+            </div>
+        )
+    }
+
     render = () => {
         const count = ((this.state.watchlist || {}).companies || []).length;
         return (
             <div>
                 <h4>Watchlist ({count} stocks)</h4>
-                <Link to={{pathname: `/comparision`}}>
+                {/* <Link to={{pathname: `/comparision`}}>
                     <button className="btn">Compare selected stocks &gt;</button>
-                </Link>
+                </Link> */}
+                {this.renderCompareView()}
                 {this.renderWatchlist()}
-                <button className="btn">Compare selected stocks &gt;</button>
+                {this.renderCompareView()}
             </div>
         );
     }

@@ -2,8 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import Form from 'react-bootstrap/Form';
 import ColoredCircle from './coloredCircle';
-
-const weeksArr = [0, 1, 2, 4, 9, 13, 26, 52, 72];
+import {weeksArr} from '../../common/util'
 
 const RemoveStockBtn = styled.button`
     font-size: 10px,

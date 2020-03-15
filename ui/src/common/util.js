@@ -14,6 +14,8 @@ const initialStorageData = {
   }
 }
 
+export const weeksArr = [0, 1, 2, 4, 9, 13, 26, 52, 104, 156, 260];
+
 export const getStorageData = () => {
   const storageData = JSON.parse(localStorage.getItem(localStorageNode)) || initialStorageData;
   return storageData;
@@ -83,11 +85,11 @@ export const calculateAveragePriceChange = (watchlistData, noOfWeeks) => {
 }
 
 export const calculatePriceChange = (prices, noOfWeeks) => {
-  const offset = noOfWeeks === 0 ? 1 : noOfWeeks * 5;
-  const lastPrice = prices[prices.length - 1] || 0;
-  const previousPrice = prices[prices.length - 1 - offset] || prices[0];
-  const change = ((lastPrice - previousPrice)/(previousPrice * .01 || 1)).toFixed(2);
-  return change;
+  const days = noOfWeeks === 0 ? 1 : noOfWeeks * 5;
+  const latestPrice = prices[prices.length - 1] || 0;
+  const previousPrice = prices[prices.length - 1 - days] || prices[0] || 1;
+  const change = (latestPrice - previousPrice)/previousPrice;
+  return (change * 100).toFixed(2);
 }
 
 export const calculateScore = (arr) => {
