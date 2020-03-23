@@ -86,6 +86,7 @@ class Watchlist extends React.Component {
                         price: price[price.length - 1],
                         volume: volume[volume.length - 1],
                         growthScore: growthScoreArr[index],
+                        score: growthScoreArr[index].combinedScore,
                         change,
                         ...element,
                         historicalData: { price, volume },
@@ -323,7 +324,7 @@ class Watchlist extends React.Component {
                             <Form.Check type='checkbox' checked={masterChecked} onChange={this.handleCheckboxChange} />    
                         </th>
                         <th><span onClick={() => this.sortBy('color')}>Color</span></th>
-                        <th>Score</th>
+                        <th><span onClick={() => this.sortBy('score', true)}>Score</span></th>
                         <th style={{width: '20%'}}>
                             <span onClick={() => this.sortBy('name')}>Company</span>
                         </th>
@@ -351,9 +352,8 @@ class Watchlist extends React.Component {
                                 </th>
                             );
                         })}
-                        {/* <th>Volume <small>(%change)</small></th> */}
                         <th>Rem.</th>
-                        <th style={{width: '30%'}}>Chart <small>(Last 25 sessions)</small></th>
+                        <th style={{width: '30%'}}>Chart <small></small></th>
                     </tr>
                 </thead>
                 <tbody>
