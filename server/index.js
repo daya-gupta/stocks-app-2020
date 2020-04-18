@@ -37,8 +37,8 @@ app.use(cors())
 // })
 
 app.get('/', (req, res) => {
-    // res.send('dayanand gupta')
-    res.sendFile('index.html', { root: __dirname });
+    res.send('dayanand gupta')
+    // res.sendFile('index.html', { root: __dirname });
 })
 
 app.get('/query', (req, res) => {
