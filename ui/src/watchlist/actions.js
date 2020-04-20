@@ -7,12 +7,14 @@ import { setStorageData, getStorageData } from "../common/util";
 // const historicalDataApi = 'query?function=TIME_SERIES_DAILY&apikey=LYK5FRW7A27I9REB';
 
 // const duration = 366;
+const host = '/';
+
 const duration = 1850;
 
 export const getHistoricalData = ({companyId, duration}, callback) => {
     return (dispatch) => {
         dispatch({ type: 'SHOW_LOADER' });
-        axios.get(`http://localhost:3300/historicalData?companyId=${companyId}&duration=${duration}`).then((res) => {
+        axios.get(`/historicalData?companyId=${companyId}&duration=${duration}`).then((res) => {
             dispatch({ type: 'HIDE_LOADER' });
             callback(res.data);
         })
@@ -24,8 +26,8 @@ export const getWatchlistData = (watchlist, callback) => {
         const promises = [];
         watchlist.forEach(element => {
             const companyId = element.id;
-            const test = axios.get(`http://localhost:3300/historicalData?companyId=${companyId}&duration=${duration}`);
-            const test1 = axios.get(`http://localhost:3300/historicalData?companyId=${companyId}&duration=${7}`);
+            const test = axios.get(`/historicalData?companyId=${companyId}&duration=${duration}`);
+            const test1 = axios.get(`/historicalData?companyId=${companyId}&duration=${7}`);
             promises.push(test);
             promises.push(test1);
         });

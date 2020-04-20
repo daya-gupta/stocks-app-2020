@@ -9,7 +9,7 @@ export const getHistoricalData = ({companyId, duration}, callback) => {
     return (dispatch) => {
         dispatch({ type: 'SHOW_LOADER' });
         // axios.get(`${historicalDataApi}&symbol=NSE:${stock}`).then((res) => {
-        axios.get(`http://localhost:3300/historicalData?companyId=${companyId}&duration=${duration}`).then((res) => {
+        axios.get(`/historicalData?companyId=${companyId}&duration=${duration}`).then((res) => {
             dispatch({ type: 'HIDE_LOADER' });
             callback(res.data);
         })
@@ -60,7 +60,7 @@ export const getConsolidatedData = ({url}, callback) => {
         dispatch({ type: 'SHOW_LOADER' });
         // callback({consolidatedData: {test: 'testData'}});
         // axios.get(`http://localhost:3300/historicalData?companyId=${companyId}&duration=${duration}`).then((res) => {
-        axios.get(`http://localhost:3300/consolidatedData?url=${url}`).then((res) => {
+        axios.get(`/consolidatedData?url=${url}`).then((res) => {
             dispatch({ type: 'HIDE_LOADER' });
             const processedData = processConsolidatedData(res.data);
             callback(processedData);
@@ -77,7 +77,7 @@ export const getConsolidatedData = ({url}, callback) => {
 export const searchCompany = (data, callback) => {
     return (dispatch) => {
         dispatch({ type: 'SHOW_LOADER' });
-        axios.get(`http://localhost:3300/searchCompany?data=${data}`).then((res) => {
+        axios.get(`/searchCompany?data=${data}`).then((res) => {
             dispatch({ type: 'HIDE_LOADER' });
             callback(res.data);
         })

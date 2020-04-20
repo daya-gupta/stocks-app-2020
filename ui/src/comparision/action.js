@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 // const host = 'https://www.alphavantage.co/';
-const host = 'http://localhost:3300/';
+// const host = 'http://localhost:3300/';
+const host = '/';
 
 const historicalDataApi = 'query?function=TIME_SERIES_DAILY&apikey=LYK5FRW7A27I9REB';
 
@@ -69,7 +70,7 @@ export const getConsolidatedData = ({url}, callback) => {
         dispatch({ type: 'SHOW_LOADER' });
         // callback({consolidatedData: {test: 'testData'}});
         // axios.get(`http://localhost:3300/historicalData?companyId=${companyId}&duration=${duration}`).then((res) => {
-        axios.get(`http://localhost:3300/consolidatedData?url=${url}`).then((res) => {
+        axios.get(`/consolidatedData?url=${url}`).then((res) => {
             dispatch({ type: 'HIDE_LOADER' });
             const processedData = processConsolidatedData(res.data);
             callback(processedData);
@@ -86,7 +87,7 @@ export const getComparisionListData = (watchlist = [], callback) => {
             // const duration = 30;
             // const test = axios.get(`http://localhost:3300/historicalData?companyId=${companyId}&duration=${duration}`);
             const url = element.url;
-            const test =axios.get(`http://localhost:3300/consolidatedData?url=${url}`);
+            const test =axios.get(`/consolidatedData?url=${url}`);
             promises.push(test);
         });
         dispatch({ type: 'SHOW_LOADER' });
