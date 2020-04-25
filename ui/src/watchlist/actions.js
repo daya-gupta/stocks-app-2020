@@ -1,20 +1,14 @@
 import axios from 'axios';
-import { setStorageData, getStorageData } from "../common/util";
-
-// const host = 'https://www.alphavantage.co/';
-// const host = 'http://localhost:3300/';
-
-// const historicalDataApi = 'query?function=TIME_SERIES_DAILY&apikey=LYK5FRW7A27I9REB';
+import {baseUrl} from '../common/constants';
+// import { setStorageData, getStorageData } from "../common/util";
 
 // const duration = 366;
-const host = '/';
-
 const duration = 1850;
 
 export const getHistoricalData = ({companyId, duration}, callback) => {
     return (dispatch) => {
         dispatch({ type: 'SHOW_LOADER' });
-        axios.get(`/historicalData?companyId=${companyId}&duration=${duration}`).then((res) => {
+        axios.get(`${baseUrl}/historicalData?companyId=${companyId}&duration=${duration}`).then((res) => {
             dispatch({ type: 'HIDE_LOADER' });
             callback(res.data);
         })
@@ -26,8 +20,8 @@ export const getWatchlistData = (watchlist, callback) => {
         const promises = [];
         watchlist.forEach(element => {
             const companyId = element.id;
-            const test = axios.get(`/historicalData?companyId=${companyId}&duration=${duration}`);
-            const test1 = axios.get(`/historicalData?companyId=${companyId}&duration=${7}`);
+            const test = axios.get(`${baseUrl}/historicalData?companyId=${companyId}&duration=${duration}`);
+            const test1 = axios.get(`${baseUrl}/historicalData?companyId=${companyId}&duration=${7}`);
             promises.push(test);
             promises.push(test1);
         });
