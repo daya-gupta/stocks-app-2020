@@ -4,12 +4,21 @@ const path = require('path');
 const https = require('https');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 
-// Constants
-const PORT = 8080;
-const HOST = '0.0.0.0';
+const environment = process.env.ENVIRONMENT || 'dev';
 
-// App
+console.log('HOST', process.env.HOST, process.env.ENVIRONMENT);
+// process.chdir(__dirname);
+const configPath = path.resolve(__dirname, 'config', `${environment}.env`)
+const result = dotenv.config({ path: configPath });
+if (result.error) console.log(result.error);
+
+// console.log('HOST', process.env.HOST);
+
+const PORT = process.env.PORT || 8080;
+const HOST = process.env.HOST || '0.0.0.0';
+
 const app = express();
 app.use(cors());
 app.use(express.static(path.resolve(__dirname, 'build')));
@@ -108,23 +117,32 @@ mongoose.model('watchlist', watchlistSchema);
 //   if (err) console.log('schema error');
 // });
 
+// const dbConfig={
+//   "uri": "127.0.0.1",
+//   "port": "27017",
+//   "options": {
+//     "useNewUrlParser": true,
+//     "poolSize": 5,
+//     "connectTimeoutMS": 1000
+//   },
+//   "name": "testdb"
+// };
+
 const dbConfig = {
-  "uri": "127.0.0.1",
-  "port": "27017",
-  "options": {
+  options: {
     "useNewUrlParser": true,
     "poolSize": 5,
     "connectTimeoutMS": 1000
-  },
-  "name": "testdb"
+  }
 };
 
-const prodUrl = 'mongodb://test-cosmos-1:bzRmqiwJi3pLAa7b2V4oA9qBuVd8FNwW2FtmWQi5EtISlo1nmxwd5IQAauWtYlCLM5Fs8UHITtjziFYZ2fkmlQ==@test-cosmos-1.mongo.cosmos.azure.com:10255/?ssl=true&appName=@test-cosmos-1@';
-const localUrl = `mongodb://${dbConfig.uri}:${dbConfig.port}/${dbConfig.name}`;
-const url = process.env.environment === 'production' ? prodUrl : localUrl;
+// const prodUrl = 'mongodb://test-cosmos-1:bzRmqiwJi3pLAa7b2V4oA9qBuVd8FNwW2FtmWQi5EtISlo1nmxwd5IQAauWtYlCLM5Fs8UHITtjziFYZ2fkmlQ==@test-cosmos-1.mongo.cosmos.azure.com:10255/?ssl=true&appName=@test-cosmos-1@';
+// const localUrl = `mongodb://${dbConfig.uri}:${dbConfig.port}/${dbConfig.name}`;
+// const dbUrl = process.env.environment === 'production' ? prodUrl : localUrl;
+const dbUrl = process.env.dbUrl;
 let db = null;
 
-mongoose.connect(url, dbConfig.options)
+mongoose.connect(dbUrl, dbConfig.options)
   .then(()=> {
     console.log(`Connected to mongodb successfully`);
     db = mongoose.connection;
