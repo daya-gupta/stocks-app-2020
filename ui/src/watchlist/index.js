@@ -2,7 +2,7 @@ import './watchlist.scss'
 import React from 'react';
 import _ from 'lodash';
 import { connect } from 'react-redux';
-import { getWatchlistData, setCompareList, updataWatchlistData } from './actions';
+import { getWatchlistData, setCompareList, updataWatchlistData, getActiveWatchlistData } from './actions';
 import { getComparisionListData } from '../comparision/action';
 import { setError } from '../common/actions/commonActions';
 import Form from 'react-bootstrap/Form';
@@ -11,7 +11,7 @@ import WatchlistRow from './components/watchlistRow';
 import ChartRender from '../components/BasicChart'
 import '../common/styles/watchlist.css';
 import {calculateGrowthScore, calculatePriceChange, calculateAveragePriceChange,
-    setActiveWatchlistData, getActiveWatchlistData, setStorageData, getStorageData, weeksArr} from '../common/util'
+    setActiveWatchlistData, setStorageData, getStorageData, weeksArr} from '../common/util'
 
 // var ref = window.firebase.database().ref();
 
@@ -37,9 +37,10 @@ class Watchlist extends React.Component {
         }
     }
 
-    initalizeWatchlist = () => {
+    initalizeWatchlist = async () => {
         // make api call to get data for each item in watchlist
-        const watchlist = getActiveWatchlistData();
+        const companies = await this.props.getActiveWatchlistData();
+        const watchlist = { companies };
         this.props.getWatchlistData(watchlist.companies, (priceVolumeData) => {
             const watchlistData = [];
             const growthScoreArr = [];
@@ -395,6 +396,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = {
     getWatchlistData,
+    getActiveWatchlistData,
     setCompareList,
     getComparisionListData,
     setError

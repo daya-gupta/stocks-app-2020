@@ -5,6 +5,7 @@ const https = require('https');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
 
 const environment = process.env.ENVIRONMENT || 'dev';
 
@@ -20,6 +21,8 @@ const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || '0.0.0.0';
 
 const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(cors());
 app.use(express.static(path.resolve(__dirname, 'build')));
 // app.use(express.static('build'));
@@ -102,15 +105,32 @@ var watchlistSchema = new mongoose.Schema({
   name: {
     type: String
   },
+  color: {
+    type: String
+  }
+});
+
+mongoose.model('watchlists', watchlistSchema)
+
+var companyListSchema = new mongoose.Schema({
+  name: {
+    type: String
+  },
   companyId: {
     type: Number
   },
   url: {
     type: String
+  },
+  watchlistName: {
+    type: String
+  },
+  comments: {
+    type: String
   }
 });
 
-mongoose.model('watchlist', watchlistSchema);
+mongoose.model('company_list', companyListSchema);
 
 // Save the new model instance, passing a callback
 // watchlistModel.save(function (err) {
@@ -165,20 +185,48 @@ mongoose.connect(dbUrl, dbConfig.options)
       }
     }); 
   });
-  
-  app.get('/add', (req, res) => {
-    // get data from mongo and send along
-    const record = { name: 'infosys', companyId: '1234', url: '/infy' };
-    db.collection('watchlist').find({}).toArray((err, data) => {
+
+  app.get('/api/getCompanies', (req, res) => {
+    db.collection('company_list').find({}).toArray((err, data) => {
       if (err) {
-        response += ' database error!!!'
-        res.send(response);
-      } else {
-        const lastId = data.length ? Number(data[data.length - 1].companyId) : 10000;
-        record.companyId = lastId + 1;
-        db.collection('watchlist').insert(record).then(res => {
-          res.send('success');
-        });    
+        return res.status(500).send(err);
       }
+      res.status(200).send(data);
     });
-  });  
+  });
+  
+  app.get('/api/company/:id', (req, res) => {
+    db.collection('company_list').findOne({id: req.param.id}).then((err, data) => {
+      if (err) {
+        return res.error(err);
+      }
+      res.status(200).send({data});
+    });
+  });
+
+  app.post('/api/company/:id', (req, res) => {
+    db.collection('company_list').insertOne(req.body).then(err => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send({data: {}});
+    });
+  });
+
+  app.put('/api/company/:id', (req, res) => {
+    db.collection('company_list').update({id: res.params.id}, req.body).then(err => {
+      if (err) {
+        res.error(err);
+      }
+      res.status(200).send({data: {}});
+    });
+  });
+
+  app.delete('/api/company/:id', (req, res) => {
+    db.collection('company_list').deleteOne({id: req.params.id}).then(err => {
+      if (err) {
+        res.error(err);
+      }
+      res.status(200).send({data: {}});
+    });
+  });

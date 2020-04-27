@@ -82,4 +82,14 @@ export const searchCompany = (data, callback) => {
     }
 }
 
+export const addCompany = (selectedCompany, callback) => {
+    return (dispatch) => {
+        dispatch({ type: 'SHOW_LOADER' });
+        axios.post(`${baseUrl}/api/company/${selectedCompany.id}`, selectedCompany).then((res, error) => {
+            dispatch({ type: 'HIDE_LOADER' });
+            callback(res, error);
+        })
+    }
+}
+
 
