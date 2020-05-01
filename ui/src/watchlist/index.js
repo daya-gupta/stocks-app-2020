@@ -318,7 +318,7 @@ class Watchlist extends React.Component {
     
 
     renderWatchlist = () => {
-        const {watchlist, watchlistData, averagePriceChange, weeksArr} = this.state;
+        const {watchlist, watchlistData, averagePriceChange, weeksArr, chartWidth} = this.state;
         if( !watchlist || !watchlistData || !watchlistData.length ) {
             return null;
         }
@@ -337,6 +337,7 @@ class Watchlist extends React.Component {
                 <WatchlistRow
                     key={item.name}
                     weeksArr={this.state.weeksArr}
+                    chartWidth={this.state.chartWidth}
                     index={index}
                     item={item}
                     handleCheckboxChange={(e) => this.handleCheckboxChange(e, index)}
@@ -366,7 +367,7 @@ class Watchlist extends React.Component {
                         </th>
                         {this.renderHeaders(averagePriceChange)}
                         {/* <th>Volume <small>(%change)</small></th> */}
-                        <th>Rem.</th>
+                        {!chartWidth && <th>Delete</th>}
                         <th style={{width: '100%'}}>Chart</th>
                     </tr>
                 </thead>

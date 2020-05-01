@@ -8,7 +8,7 @@ class ChartRender extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      timeframe: false
+      timeframe: true
     }
   }
 

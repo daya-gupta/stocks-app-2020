@@ -11,14 +11,12 @@ const RemoveStockBtn = styled.button`
 
 export default class WatchlistRow extends React.PureComponent {
   render = () => {
-      const { item, index, handleCheckboxChange, renderChart, removeStock, moveStock, watchlist, watchlistData, priceChangeRange, weeksArr } = this.props;
+      const { item, index, handleCheckboxChange, renderChart, removeStock, moveStock, watchlist, watchlistData, priceChangeRange, weeksArr, chartWidth } = this.props;
       const scoreR = item.growthScore.revenueScore;
       const scoreP = item.growthScore.profitScore;
       const name = item.name;
       const url = item.url;
       const checked = item.checked;
-    //   const price = item.price || 'NA';
-    //   const volume = item.volume || 'NA';
       const change = item.change;
 
       return (
@@ -86,9 +84,7 @@ export default class WatchlistRow extends React.PureComponent {
                     );
                   }
                 })}
-              {/* <td>{price}, {item.priceChange[0]}%</td> */}
-              {/* <td>{volume}, ({change.volume})%</td> */}
-              <td><RemoveStockBtn className="fa fa-times" onClick={() => removeStock(index)}></RemoveStockBtn></td>
+              {!chartWidth && <td><RemoveStockBtn className="fa fa-times" onClick={() => removeStock(index)}></RemoveStockBtn></td>}
               <td>{renderChart(item.historicalData, index)}</td>
           </tr>
       );
