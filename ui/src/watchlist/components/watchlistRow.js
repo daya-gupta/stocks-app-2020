@@ -49,8 +49,18 @@ export default class WatchlistRow extends React.PureComponent {
                     let a = 1;
                     if (min > 0) {
                         // min and max both are positive
+                        // green color
+                        const diff = max;
+                        const units = max - price; 
+                        g = 256;
+                        a = units/diff;
                     } else if (max < 0) {
                         // min and max both are negative
+                        // red color
+                        const diff = min;
+                        const units = min - price;
+                        r = 256;
+                        a = units/diff;
                     } else {
                         // min is negative and max is positive
                         if (price > 0) {
