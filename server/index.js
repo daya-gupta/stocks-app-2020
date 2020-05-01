@@ -38,6 +38,10 @@ app.get('/', (req, res) => {
     res.send('dayanand gupta')
 })
 
+app.get('/index', (req, res) => {
+    res.sendFile('index.html', {root: __dirname});
+})
+
 app.get('/query', (req, res) => {
     // read mock json and send in response
     const symbol = req.query.symbol.split(':')[1].toLowerCase();
