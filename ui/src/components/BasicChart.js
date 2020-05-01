@@ -2,21 +2,38 @@ import React, { Component } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 
+const defaultTimeFrame = 90;
+
 class ChartRender extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      timeframe: false
+    }
+  }
 
   getSeriesData(stockData) {
     const seriesData = [];
-    seriesData.push({ type: 'spline', name: `price`, data: stockData.price });
-    seriesData.push({ type: 'column', name: `volume`, data: stockData.volume, yAxis: 1 });
+    if (!this.state.timeframe) {
+      seriesData.push({ type: 'spline', name: `price`, data: stockData.price });
+      seriesData.push({ type: 'column', name: `volume`, data: stockData.volume, yAxis: 1 });
+    } else {
+      // take last n entries
+      const stateIndex = stockData.price.length - defaultTimeFrame;
+      seriesData.push({ type: 'spline', name: `price`, data: stockData.price.slice(stateIndex) });
+      seriesData.push({ type: 'column', name: `volume`, data: stockData.volume.slice(stateIndex), yAxis: 1 });
+    }
     return seriesData;
+  }
+
+  changeTimeframe = () => {
+    this.setState({timeframe: !this.state.timeframe});
   }
 
   render() {
     const options = {
       chart: {
-        // marginRight: 260,
-        // marginLeft: 260
-        height: 100
+        height: '200px',
       },
       legend: {
         // align: 'center',
@@ -37,21 +54,8 @@ class ChartRender extends Component {
         },
         opposite: true
       }],
-    //   xAxis: {
-    //     title: {
-    //       text: 'date'
-    //     },
-    //     categories: this.categoriesGenerator()
-    //   },
       labels: {
           visible: false
-        // items: [{
-        //   style: {
-        //     left: '50px',
-        //     top: '18px',
-        //     color: (Highcharts.theme && Highcharts.theme.textColor) || 'black'
-        //   }
-        // }]
       },
       title: {
         text: '',
@@ -59,12 +63,26 @@ class ChartRender extends Component {
       series: this.getSeriesData(this.props.processedData),
     };
 
-    return (<div>
+    return (<div style={{position: 'relative'}}>
       <HighchartsReact
         highcharts={Highcharts}
         options={options}
         key={this.props.key}
       />
+      <button
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          padding: '8px',
+          lineHeight: 0,
+          background: '#00b8ff',
+          borderRadius: '5px',
+          width: '28px'
+        }}
+        onClick={this.changeTimeframe}
+      >
+        {this.state.timeframe ? '-' : '+'}
+      </button>
     </div>)
   }
 }

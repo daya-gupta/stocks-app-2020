@@ -11,7 +11,7 @@ import WatchlistRow from './components/watchlistRow';
 import ChartRender from '../components/BasicChart'
 import '../common/styles/watchlist.css';
 import {calculateGrowthScore, calculatePriceChange, calculateAveragePriceChange,
-    setActiveWatchlistData, getActiveWatchlistData, setStorageData, getStorageData, weeksArr, weeksArrMapper} from '../common/util'
+    setActiveWatchlistData, getActiveWatchlistData, setStorageData, getStorageData, weeksArray, weeksArrayMapper} from '../common/util'
 
 // var ref = window.firebase.database().ref();
 
@@ -24,7 +24,10 @@ import {calculateGrowthScore, calculatePriceChange, calculateAveragePriceChange,
 class Watchlist extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {}
+        this.state = {
+            weeksArr: weeksArray,
+            chartWidth: false,
+        }
     }
 
     componentDidMount() {
@@ -80,7 +83,7 @@ class Watchlist extends React.Component {
 
                     const change = this.calculateChange(index, { price, volume });
                     // const priceChange = [calculatePriceChange(price, 0), calculatePriceChange(price, 1), calculatePriceChange(price, 2), calculatePriceChange(price, 4), calculatePriceChange(price, 8)]
-                    const priceChange = this.getPriceChange(price, weeksArr);
+                    const priceChange = this.getPriceChange(price);
                             
                     watchlistData.push({
                         price: price[price.length - 1],
@@ -97,7 +100,7 @@ class Watchlist extends React.Component {
                     watchlist,
                     watchlistData,
                     // averagePriceChange: [calculateAveragePriceChange(watchlistData, 0), calculateAveragePriceChange(watchlistData, 1), calculateAveragePriceChange(watchlistData, 2), calculateAveragePriceChange(watchlistData, 4), calculateAveragePriceChange(watchlistData, 8)],
-                    averagePriceChange: this.getAveragePriceChange(watchlistData, weeksArr),
+                    averagePriceChange: this.getAveragePriceChange(watchlistData),
                 });
             });
         });
@@ -118,17 +121,18 @@ class Watchlist extends React.Component {
         return change;
       }
 
-      getPriceChange = (price, weeks = weeksArr) => {
+      getPriceChange = (price) => {
+        const weeks = this.state.weeksArr;
         const priceChange = [];
         price = price.slice(0).reverse();
-        // price.splice(1, 1);
         for (const w of weeks) {
             priceChange[w] = this.calculatePriceChange(price, w);
         }
         return priceChange;
     }
 
-    getAveragePriceChange = (watchlistData, weeks = weeksArr) => {
+    getAveragePriceChange = (watchlistData) => {
+        const weeks = this.state.weeksArr;
         const averagePriceChange = [];
         for (const w of weeks) {
             averagePriceChange[w] = calculateAveragePriceChange(watchlistData, w);
@@ -164,7 +168,7 @@ class Watchlist extends React.Component {
             this.setState({
                 watchlist,
                 watchlistData,
-                averagePriceChange: this.getAveragePriceChange(watchlistData, weeksArr),
+                averagePriceChange: this.getAveragePriceChange(watchlistData),
                 compare: false 
             });
             this.localData = {};
@@ -184,7 +188,7 @@ class Watchlist extends React.Component {
         this.setState({
             watchlist: newWatchlist,
             watchlistData: newWatchlistData,
-            averagePriceChange: this.getAveragePriceChange(newWatchlistData, weeksArr),
+            averagePriceChange: this.getAveragePriceChange(newWatchlistData),
             compare: true
         });
     }
@@ -200,7 +204,7 @@ class Watchlist extends React.Component {
             watchlist,
             watchlistData,
             // averagePriceChange: [calculateAveragePriceChange(watchlistData, 0), calculateAveragePriceChange(watchlistData, 1), calculateAveragePriceChange(watchlistData, 2), calculateAveragePriceChange(watchlistData, 4), calculateAveragePriceChange(watchlistData, 8)],
-            averagePriceChange: this.getAveragePriceChange(watchlistData, weeksArr),
+            averagePriceChange: this.getAveragePriceChange(watchlistData),
         });
         return removedItemFromWatchlist;
     }
@@ -285,9 +289,25 @@ class Watchlist extends React.Component {
 
     renderHeaders = (averagePriceChange) => {
         let counter = 1;
-        return averagePriceChange.map((value, valueIndex) => {
+        const arr = this.state.chartWidth ? averagePriceChange.slice(0, 6) : averagePriceChange;
+        return arr.map((value, valueIndex) => {
             if (!value || !valueIndex) { return null; }
-            const label = weeksArrMapper[counter++].label;
+            const label = weeksArrayMapper[counter++].label;
+            return (
+                <th>
+                    <div onClick={() => this.sortBy(`priceChange.${valueIndex}`, true)}>{label} {value} %</div>
+                </th>
+            );
+        });
+    }
+
+    renderHeaders = (averagePriceChange) => {
+        let counter = 1;
+        // const testArr = averagePriceChange.
+        const arr = this.state.chartWidth ? averagePriceChange.slice(0, 14) : averagePriceChange;
+        return arr.map((value, valueIndex) => {
+            if (!value || !valueIndex) { return null; }
+            const label = weeksArrayMapper[counter++].label;
             return (
                 <th>
                     <div onClick={() => this.sortBy(`priceChange.${valueIndex}`, true)}>{label} {value} %</div>
@@ -298,7 +318,7 @@ class Watchlist extends React.Component {
     
 
     renderWatchlist = () => {
-        const {watchlist, watchlistData, averagePriceChange} = this.state;
+        const {watchlist, watchlistData, averagePriceChange, weeksArr} = this.state;
         if( !watchlist || !watchlistData || !watchlistData.length ) {
             return null;
         }
@@ -316,6 +336,7 @@ class Watchlist extends React.Component {
             return (
                 <WatchlistRow
                     key={item.name}
+                    weeksArr={this.state.weeksArr}
                     index={index}
                     item={item}
                     handleCheckboxChange={(e) => this.handleCheckboxChange(e, index)}
@@ -346,7 +367,7 @@ class Watchlist extends React.Component {
                         {this.renderHeaders(averagePriceChange)}
                         {/* <th>Volume <small>(%change)</small></th> */}
                         <th>Rem.</th>
-                        <th style={{width: '30%'}}>Chart</th>
+                        <th style={{width: '100%'}}>Chart</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -365,11 +386,20 @@ class Watchlist extends React.Component {
         )
     }
 
+    changeChartWidth = () => {
+        const chartWidth = !this.state.chartWidth
+        const weeksArr = chartWidth ? weeksArray.slice(0, 6) : weeksArray;
+        this.setState({chartWidth, weeksArr});
+    }
+
     render = () => {
         const count = ((this.state.watchlist || {}).companies || []).length;
         return (
             <div>
                 <h4>Watchlist ({count} stocks)</h4>
+                <button onClick={() => this.changeChartWidth()}>
+                    Change Chart Width
+                </button>
                 {/* <Link to={{pathname: `/comparision`}}>
                     <button className="btn">Compare selected stocks &gt;</button>
                 </Link> */}

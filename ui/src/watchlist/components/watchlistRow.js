@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import Form from 'react-bootstrap/Form';
 import ColoredCircle from './coloredCircle';
-import {weeksArr} from '../../common/util'
 
 const RemoveStockBtn = styled.button`
     font-size: 10px,
@@ -12,7 +11,7 @@ const RemoveStockBtn = styled.button`
 
 export default class WatchlistRow extends React.PureComponent {
   render = () => {
-      const { item, index, handleCheckboxChange, renderChart, removeStock, moveStock, watchlist, watchlistData, priceChangeRange } = this.props;
+      const { item, index, handleCheckboxChange, renderChart, removeStock, moveStock, watchlist, watchlistData, priceChangeRange, weeksArr } = this.props;
       const scoreR = item.growthScore.revenueScore;
       const scoreP = item.growthScore.profitScore;
       const name = item.name;
@@ -36,15 +35,6 @@ export default class WatchlistRow extends React.PureComponent {
                       {name}
                   </a>
               </td>
-              {/* <td>{price}, ({item.priceChange[0]})%</td> */}
-              {/* <td>{weeksArr.map(i => item.priceChange[i]).slice(1).join('%, ')}%</td> */}
-              {/* {weeksArr.map((i, index) => {
-                  if (!index) {
-                      return null;
-                  } else {
-                      return (<td>{item.priceChange[i]} %</td>);
-                  }
-                })} */}
                 {weeksArr.map((i, index) => {
                     if (1-1) {
                         return null;
