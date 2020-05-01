@@ -6,12 +6,12 @@ import { getWatchlistData, setCompareList, updataWatchlistData } from './actions
 import { getComparisionListData } from '../comparision/action';
 import { setError } from '../common/actions/commonActions';
 import Form from 'react-bootstrap/Form';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import WatchlistRow from './components/watchlistRow';
 import ChartRender from '../components/BasicChart'
 import '../common/styles/watchlist.css';
 import {calculateGrowthScore, calculatePriceChange, calculateAveragePriceChange,
-    setActiveWatchlistData, getActiveWatchlistData, setStorageData, getStorageData, weeksArr} from '../common/util'
+    setActiveWatchlistData, getActiveWatchlistData, setStorageData, getStorageData, weeksArr, weeksArrMapper} from '../common/util'
 
 // var ref = window.firebase.database().ref();
 
@@ -118,7 +118,7 @@ class Watchlist extends React.Component {
         return change;
       }
 
-    getPriceChange = (price, weeks = weeksArr) => {
+      getPriceChange = (price, weeks = weeksArr) => {
         const priceChange = [];
         price = price.slice(0).reverse();
         // price.splice(1, 1);
@@ -283,6 +283,20 @@ class Watchlist extends React.Component {
         this.setState({watchlistData, sortBy: param, sortOrder });
     }
 
+    renderHeaders = (averagePriceChange) => {
+        let counter = 1;
+        return averagePriceChange.map((value, valueIndex) => {
+            if (!value || !valueIndex) { return null; }
+            const label = weeksArrMapper[counter++].label;
+            return (
+                <th>
+                    <div onClick={() => this.sortBy(`priceChange.${valueIndex}`, true)}>{label} {value} %</div>
+                </th>
+            );
+        });
+    }
+    
+
     renderWatchlist = () => {
         const {watchlist, watchlistData, averagePriceChange} = this.state;
         if( !watchlist || !watchlistData || !watchlistData.length ) {
@@ -296,7 +310,6 @@ class Watchlist extends React.Component {
             const min = _.min(priceChangeArr);
             priceChangeRange.push([min, max]);
         }
-        console.log(priceChangeRange);
         watchlistData.map(item => item.priceChange)
     
         const html = watchlistData.map((item, index) => {
@@ -327,33 +340,13 @@ class Watchlist extends React.Component {
                         <th style={{width: '20%'}}>
                             <span onClick={() => this.sortBy('name')}>Company</span>
                         </th>
-                        {/* <th>
-                            <span>
-                                OWPC&nbsp;
-                                <small>
-                                    ({averagePriceChange.map((i, ind) => {
-                                        if (!i || !ind) { return null; }
-                                        return (
-                                            <div onClick={() => this.sortBy(`priceChange.${ind}`, true)}>{i}%,&nbsp;</div>
-                                        );
-                                    })})
-                                </small>
-                            </span>
-                        </th> */}
                         <th>
                             <span onClick={() => this.sortBy('priceChange.0', true)}>Price <small>({averagePriceChange[0]}% change)</small></span>
                         </th>
-                        {averagePriceChange.map((i, ind) => {
-                            if (!i || !ind) { return null; }
-                            return (
-                                <th>
-                                    <div onClick={() => this.sortBy(`priceChange.${ind}`, true)}>{ind} WC {i} %</div>
-                                </th>
-                            );
-                        })}
+                        {this.renderHeaders(averagePriceChange)}
                         {/* <th>Volume <small>(%change)</small></th> */}
                         <th>Rem.</th>
-                        <th style={{width: '30%'}}>Chart <small>(Last 25 sessions)</small></th>
+                        <th style={{width: '30%'}}>Chart</th>
                     </tr>
                 </thead>
                 <tbody>

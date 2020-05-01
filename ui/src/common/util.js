@@ -15,6 +15,19 @@ const initialStorageData = {
 }
 
 export const weeksArr = [0, 1, 2, 4, 9, 13, 26, 52, 104, 156, 260];
+export const weeksArrMapper = [
+  {w: 0, label: '1 day'},
+  {w: 1, label: '1 week'},
+  {w: 2, label: '2 week'},
+  {w: 4, label: '1 month'},
+  {w: 9, label: '2 month'},
+  {w: 14, label: '3 month'},
+  {w: 26, label: '6 month'},
+  {w: 52, label: '1 year'},
+  {w: 104, label: '2 year'},
+  {w: 156, label: '3 year'},
+  {w: 260, label: '5 year'},
+]
 
 export const getStorageData = () => {
   const storageData = JSON.parse(localStorage.getItem(localStorageNode)) || initialStorageData;
