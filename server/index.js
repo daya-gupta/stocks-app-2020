@@ -6,12 +6,14 @@ const cors = require('cors');
 
 const app = express();
 // const port = process.env.port || 3300;
-const port = 3300;
+// const port = 3300;
+const PORT = 8080;
+const HOST = '0.0.0.0';
 
 // const timeSeriesDailyApi = '/query?function=TIME_SERIES_DAILY&apikey=LYK5FRW7A27I9REB';
 app.use(cors())
 
-app.use(express.static(path.resolve(__dirname, 'build')));
+// app.use(express.static(path.resolve(__dirname, 'build')));
 // app.use(express.static('build'));
 
 // let counter = 0;
@@ -36,6 +38,7 @@ app.use(express.static(path.resolve(__dirname, 'build')));
 
 app.get('/', (req, res) => {
     res.send('dayanand gupta')
+    // res.sendFile('index.html', { root: __dirname });
 })
 
 app.get('/index', (req, res) => {
@@ -113,6 +116,5 @@ app.get('/historicalData', (req, res) => {
     });
 })
 
-app.listen(port, () => {
-    console.log(`mock server listening @ ${port}`);
-})
+app.listen(PORT, HOST);
+console.log(`Running on http://${HOST}:${PORT}`);

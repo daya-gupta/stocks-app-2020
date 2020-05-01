@@ -2,7 +2,7 @@ import './watchlist.scss'
 import React from 'react';
 import _ from 'lodash';
 import { connect } from 'react-redux';
-import { getWatchlistData, setCompareList, updataWatchlistData } from './actions';
+import { getWatchlistData, setCompareList, updataWatchlistData, getActiveWatchlistData } from './actions';
 import { getComparisionListData } from '../comparision/action';
 import { setError } from '../common/actions/commonActions';
 import Form from 'react-bootstrap/Form';
@@ -11,7 +11,7 @@ import WatchlistRow from './components/watchlistRow';
 import ChartRender from '../components/BasicChart'
 import '../common/styles/watchlist.css';
 import {calculateGrowthScore, calculatePriceChange, calculateAveragePriceChange,
-    setActiveWatchlistData, getActiveWatchlistData, setStorageData, getStorageData, weeksArray, weeksArrayMapper} from '../common/util'
+    setActiveWatchlistData, setStorageData, getStorageData, weeksArray, weeksArrayMapper} from '../common/util'
 
 // var ref = window.firebase.database().ref();
 
@@ -40,9 +40,10 @@ class Watchlist extends React.Component {
         }
     }
 
-    initalizeWatchlist = () => {
+    initalizeWatchlist = async () => {
         // make api call to get data for each item in watchlist
-        const watchlist = getActiveWatchlistData();
+        const companies = await this.props.getActiveWatchlistData();
+        const watchlist = { companies };
         this.props.getWatchlistData(watchlist.companies, (priceVolumeData) => {
             const watchlistData = [];
             const growthScoreArr = [];
@@ -89,6 +90,7 @@ class Watchlist extends React.Component {
                         price: price[price.length - 1],
                         volume: volume[volume.length - 1],
                         growthScore: growthScoreArr[index],
+                        score: growthScoreArr[index].combinedScore,
                         change,
                         ...element,
                         historicalData: { price, volume },
@@ -358,7 +360,7 @@ class Watchlist extends React.Component {
                             <Form.Check type='checkbox' checked={masterChecked} onChange={this.handleCheckboxChange} />    
                         </th>
                         <th><span onClick={() => this.sortBy('color')}>Color</span></th>
-                        <th>Score</th>
+                        <th><span onClick={() => this.sortBy('score', true)}>Score</span></th>
                         <th style={{width: '20%'}}>
                             <span onClick={() => this.sortBy('name')}>Company</span>
                         </th>
@@ -419,6 +421,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = {
     getWatchlistData,
+    getActiveWatchlistData,
     setCompareList,
     getComparisionListData,
     setError

@@ -2,7 +2,7 @@ import React, { Component} from 'react';
 import { connect } from 'react-redux';
 import '../common/styles/company.css';
 import Typeahead from '../common/components/typeahead';
-import { getHistoricalData, searchCompany, getConsolidatedData } from './action';
+import { getHistoricalData, searchCompany, getConsolidatedData, addCompany } from './action';
 import { setError } from '../common/actions/commonActions';
 import ChartRender from '../components/chartRender';
 import { processHistoricalData, getActiveWatchlistData, setActiveWatchlistData } from '../common/util';
@@ -54,23 +54,36 @@ class Company extends Component {
         );
     }
 
+    // addToWatchlist = () => {
+    //     const selectedCompany = this.state.selectedCompany;
+    //     const watchlistData = getActiveWatchlistData();
+    //     let errorMessage = null;
+    //     // validate watchlist and selected company
+    //     // if (!selectedCompany || watchlistName) {
+    //     //     errorMessage = 'No stock selected!! or no watchlist exist!!';
+    //     // } else {
+    //         if (watchlistData.companies.filter(item => item.id === selectedCompany.id).length === 0) {
+    //             watchlistData.companies.push(selectedCompany);
+    //             setActiveWatchlistData(watchlistData);
+    //             errorMessage = 'Stock added successfully';
+    //         } else {
+    //             errorMessage = 'Stock already exist in the watchlist';
+    //         }
+    //     // }
+    //     const error = { message: errorMessage };
+    //     this.props.setError(error);
+    // }
+
     addToWatchlist = () => {
         const selectedCompany = this.state.selectedCompany;
-        const watchlistData = getActiveWatchlistData();
-        let errorMessage = null;
-        // validate watchlist and selected company
-        // if (!selectedCompany || watchlistName) {
-        //     errorMessage = 'No stock selected!! or no watchlist exist!!';
-        // } else {
-            if (watchlistData.companies.filter(item => item.id === selectedCompany.id).length === 0) {
-                watchlistData.companies.push(selectedCompany);
-                setActiveWatchlistData(watchlistData);
-                errorMessage = 'Stock added successfully';
+        const error = { message: '' };
+        this.props.addCompany(selectedCompany, (res, err) => {
+            if (err) {
+                error.message = err.error;
             } else {
-                errorMessage = 'Stock already exist in the watchlist';
+                error.message = 'Stock added successfully';
             }
-        // }
-        const error = { message: errorMessage };
+        });
         this.props.setError(error);
     }
 
@@ -120,7 +133,8 @@ const mapDispatchToProps = {
     getHistoricalData,
     getConsolidatedData,
     searchCompany,
-    setError
+    setError,
+    addCompany
 };
 
 const connectedComponent = connect(mapStateToProps, mapDispatchToProps)(Company);

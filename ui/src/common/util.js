@@ -140,11 +140,13 @@ export const calculateGrowthScore = (processedData) => {
   const profitData = processedData.map((item) => item.profit);
   const revenueScore = calculateScore(revenueData);
   const profitScore = calculateScore(profitData);
+  const combinedScore = revenueScore + profitScore;
   const averageProfitScore = (profitScore/(processedData.length - 4)).toFixed(2);
   const averageRevenueScore = (revenueScore/(processedData.length - 4)).toFixed(2);
   return {
       profitScore,
       revenueScore,
+      combinedScore,
       averageProfitScore,
       averageRevenueScore
   };
