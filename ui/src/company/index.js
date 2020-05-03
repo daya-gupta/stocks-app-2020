@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import '../common/styles/company.css';
 import Typeahead from '../common/components/typeahead';
 import { getHistoricalData, searchCompany, getConsolidatedData, addCompany } from './action';
-import { setError } from '../common/actions/commonActions';
+import { setError, getAllWatchlists } from '../common/actions/commonActions';
 import ChartRender from '../components/chartRender';
 import { processHistoricalData, getActiveWatchlistData, setActiveWatchlistData } from '../common/util';
 import { durationOptions } from '../common/constants';
@@ -12,7 +12,7 @@ import { durationOptions } from '../common/constants';
 
 class Company extends Component {
     state = {
-        selectedCompany: { id: 3365, name: 'Tata Consultancy Services Ltd', url: '/company/TCS/consolidated/' },
+        selectedCompany: { companyId: 3365, name: 'Tata Consultancy Services Ltd', url: '/company/TCS/consolidated/' },
         historicalData: [],
         consolidatedData: [],
         duration: 1080,
@@ -20,8 +20,12 @@ class Company extends Component {
     };
 
     componentDidMount() {
+        const activeWatchlist = this.props.common.activeWatchlist;
+        if (!activeWatchlist) {
+            this.props.getAllWatchlists();
+        }
         const duration = this.state.duration;
-        const companyId = this.state.selectedCompany.id;
+        const companyId = this.state.selectedCompany.companyId;
         const url = this.state.selectedCompany.url;
         this.props.getHistoricalData({companyId, duration}, this.historicalDataCallback);
         this.props.getConsolidatedData({url}, this.consolidatedDataCallback);
@@ -36,10 +40,11 @@ class Company extends Component {
     }
 
     selectCompany = (selection) => {
-        const selectedCompany = {...selection};
-        this.setState({ selectedCompany });
+        selection.companyId = selection.id;
+        delete selection.id;
+        this.setState({ selectedCompany: selection });
         const duration = this.state.duration;
-        const companyId = selection.id;
+        const companyId = selection.companyId;
         const url = selection.url;
         this.props.getHistoricalData({companyId, duration}, this.historicalDataCallback);
         this.props.getConsolidatedData({url}, this.consolidatedDataCallback);
@@ -76,6 +81,7 @@ class Company extends Component {
 
     addToWatchlist = () => {
         const selectedCompany = this.state.selectedCompany;
+        selectedCompany.watchlistId = this.props.common.activeWatchlist._id;
         const error = { message: '' };
         this.props.addCompany(selectedCompany, (res, err) => {
             if (err) {
@@ -89,7 +95,7 @@ class Company extends Component {
 
     changeDuration = (duration) => {
         this.setState({ duration });
-        const companyId = this.state.selectedCompany.id;
+        const companyId = this.state.selectedCompany.companyId;
         this.props.getHistoricalData({companyId, duration}, this.historicalDataCallback);
     }
 
@@ -134,7 +140,8 @@ const mapDispatchToProps = {
     getConsolidatedData,
     searchCompany,
     setError,
-    addCompany
+    addCompany,
+    getAllWatchlists,
 };
 
 const connectedComponent = connect(mapStateToProps, mapDispatchToProps)(Company);

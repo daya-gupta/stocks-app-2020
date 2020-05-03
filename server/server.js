@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 
+const ObjectId = mongoose.Types.ObjectId;
+
 const environment = process.env.ENVIRONMENT || 'dev';
 
 console.log('HOST', process.env.HOST, process.env.ENVIRONMENT);
@@ -101,32 +103,84 @@ console.log(`Running on http://${HOST}:${PORT}`);
 
 // Mongoose connection
 
-var watchlistSchema = new mongoose.Schema({
-  name: {
-    type: String
+var userSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
   },
-  color: {
-    type: String
+  fname: {
+    type: String,
+    required: true,
+  },
+  lname: {
+    type: String,
+    required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+  },
+  password: {
+    type: String,
+    required: true,
   }
 });
 
-mongoose.model('watchlists', watchlistSchema)
+mongoose.model('user', userSchema);
+
+var watchlistSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  color: {
+    type: String,
+    required: true,
+  },
+  default: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
+  userId: {
+    type: String,
+    required: true,
+  }
+});
+
+mongoose.model('watchlist', watchlistSchema);
 
 var companyListSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
   name: {
-    type: String
+    type: String,
+    required: true,
   },
   companyId: {
-    type: Number
+    type: Number,
+    required: true,
   },
   url: {
-    type: String
+    type: String,
+    required: true,
   },
-  watchlistName: {
-    type: String
+  watchlistId: {
+    type: String,
+    required: true,
   },
   comments: {
     type: String
+  },
+  userId: {
+    type: String,
+    required: true,
   }
 });
 
@@ -159,6 +213,9 @@ const dbConfig = {
 // const prodUrl = 'mongodb://test-cosmos-1:bzRmqiwJi3pLAa7b2V4oA9qBuVd8FNwW2FtmWQi5EtISlo1nmxwd5IQAauWtYlCLM5Fs8UHITtjziFYZ2fkmlQ==@test-cosmos-1.mongo.cosmos.azure.com:10255/?ssl=true&appName=@test-cosmos-1@';
 // const localUrl = `mongodb://${dbConfig.uri}:${dbConfig.port}/${dbConfig.name}`;
 // const dbUrl = process.env.environment === 'production' ? prodUrl : localUrl;
+
+const userId = '5ead1902a870ac38d18bd50c';
+
 const dbUrl = process.env.dbUrl;
 let db = null;
 
@@ -186,8 +243,113 @@ mongoose.connect(dbUrl, dbConfig.options)
     }); 
   });
 
-  app.get('/api/getCompanies', (req, res) => {
-    db.collection('company_list').find({}).toArray((err, data) => {
+  const getMasterWatchlistData = (userId) => {
+    const data = {
+      _id: ObjectId().toString(),
+      name: 'Master',
+      color: '#fff',
+      default: true,
+      userId
+    }
+    return data;
+  }
+
+  app.post('/api/user', (req, res) => {
+    const id = ObjectId();
+    req.body._id = id.toString();
+    db.collection('user').insertOne(req.body, (err, response) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      console.log(response);
+      // create master watchlist for the user
+      const userId = response.insertedId;
+      const masterWatchlistData = getMasterWatchlistData(userId);
+      db.collection('watchlist').insertOne(masterWatchlistData, (err, response) => {
+        if (err) {
+          // do a roll back for user registration
+          return res.status(500).send(err);
+        }
+        console.log(response);
+        // create master watchlist for the user
+        res.status(200).send({data: { message: 'User registered successfully.' }});
+      });
+
+    });
+  });
+
+  app.get('/api/user/:_id', (req, res) => {
+    if (!req.params._id) {
+      return res.status(500).send({message: 'User id not found'});
+    }
+    db.collection('user').findOne({_id: req.params._id}).then((err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send({data});
+    });
+  });
+
+  app.post('/api/watchlist', (req, res) => {
+    req.body._id = ObjectId().toString();
+    req.body.userId = userId;
+    db.collection('watchlist').insertOne(req.body, (err, response) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send({data: { message: 'Watchlist created successfully.' }});
+    });
+  });
+
+  app.get('/api/watchlist', (req, res) => {
+    db.collection('watchlist').find({}).toArray((err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send(data);
+    });
+  });
+
+  app.put('/api/watchlist/:_id', (req, res) => {
+    db.collection('watchlist').updateOne({_id: req.params._id}, {$set: req.body}, (err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send(data);
+    });
+  });
+
+  app.post('/api/company', (req, res) => {
+    req.body._id = ObjectId().toString();
+    req.body.userId = userId;
+    db.collection('company_list').insertOne(req.body, (err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send({data});
+    });
+  });
+
+  app.put('/api/company/:_id', (req, res) => {
+    db.collection('company_list').updateOne({_id: req.params._id}, {$set: req.body}, (err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send(data);
+    });
+  });
+
+  app.delete('/api/company/:_id', (req, res) => {
+    db.collection('company_list').deleteOne({_id: req.params._id}, (err, response) => {
+      if (err) {
+        res.error(err);
+      }
+      res.status(200).send({message: 'stock removed successfully'});
+    });
+  });
+
+  app.get('/api/company/watchlist/:watchlistId', (req, res) => {
+    db.collection('company_list').find({watchlistId: req.params.watchlistId}).toArray((err, data) => {
       if (err) {
         return res.status(500).send(err);
       }
@@ -195,38 +357,13 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
   
-  app.get('/api/company/:id', (req, res) => {
-    db.collection('company_list').findOne({id: req.param.id}).then((err, data) => {
-      if (err) {
-        return res.error(err);
-      }
-      res.status(200).send({data});
-    });
-  });
+  // app.get('/api/company/:_id', (req, res) => {
+  //   db.collection('company_list').findOne({_id: req.params._id}, (err, data) => {
+  //     if (err) {
+  //       return res.error(err);
+  //     }
+  //     res.status(200).send({data});
+  //   });
+  // });
 
-  app.post('/api/company/:id', (req, res) => {
-    db.collection('company_list').insertOne(req.body).then(err => {
-      if (err) {
-        return res.status(500).send(err);
-      }
-      res.status(200).send({data: {}});
-    });
-  });
-
-  app.put('/api/company/:id', (req, res) => {
-    db.collection('company_list').update({id: res.params.id}, req.body).then(err => {
-      if (err) {
-        res.error(err);
-      }
-      res.status(200).send({data: {}});
-    });
-  });
-
-  app.delete('/api/company/:id', (req, res) => {
-    db.collection('company_list').deleteOne({id: req.params.id}).then(err => {
-      if (err) {
-        res.error(err);
-      }
-      res.status(200).send({data: {}});
-    });
-  });
+  

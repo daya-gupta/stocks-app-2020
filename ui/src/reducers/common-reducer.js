@@ -8,7 +8,9 @@ const initialState = {
     compareList : [],
     // activeWatchlistIndex: storageData.activeWatchlistIndex,
     // watchlistData: storageData.watchlistData,
-    ...storageData,
+    // ...storageData,
+    watchlistData: null,
+    activeWatchlist: null,
     error: null
 }
 
@@ -64,6 +66,14 @@ const commonReducer = (state = initialState, action) => {
             return {
                 ...state,
                 watchlistData: action.data.watchlistData
+            }
+        }
+        case 'SET_USER_WATCHLIST': {
+            const activeWatchlist = action.data.find(item => item.default);
+            return {
+                ...state,
+                watchlistData: action.data,
+                activeWatchlist 
             }
         }
         default: return state;

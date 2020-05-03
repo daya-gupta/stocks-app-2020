@@ -25,7 +25,7 @@ export default class WatchlistRow extends React.PureComponent {
                   <Form.Check type='checkbox' checked={checked} onChange={handleCheckboxChange} />
               </td>
               <td>
-                  <ColoredCircle item={item} moveStock={moveStock} watchlistData={watchlistData} />
+                  <ColoredCircle item={item} moveStock={moveStock} />
               </td>
               <td>{scoreR}, {scoreP}</td>
               <td>
@@ -77,7 +77,7 @@ export default class WatchlistRow extends React.PureComponent {
                     }
                     const style = {backgroundColor: `rgba(${r}, ${g}, ${b}, ${(1-a)})`};
                     return (
-                        <td style={style}>
+                        <td key={index} style={style}>
                             {!index && <span>{item.price} &nbsp;</span>}
                             {price} %
                         </td>

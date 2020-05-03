@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { connect } from 'react-redux';
 import { getWatchlistData, setCompareList, updataWatchlistData, getActiveWatchlistData } from './actions';
 import { getComparisionListData } from '../comparision/action';
-import { setError } from '../common/actions/commonActions';
+import { setError, getAllWatchlists, removeCompany } from '../common/actions/commonActions';
 import Form from 'react-bootstrap/Form';
 // import { Link } from 'react-router-dom';
 import WatchlistRow from './components/watchlistRow';
@@ -31,18 +31,27 @@ class Watchlist extends React.Component {
     }
 
     componentDidMount() {
-        this.initalizeWatchlist();
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.common.activeWatchlistIndex !== this.props.common.activeWatchlistIndex) {
-            this.initalizeWatchlist();
+        let activeWatchlist = this.props.common.activeWatchlist;
+        if (activeWatchlist) {
+            this.initalizeWatchlist(activeWatchlist._id);
+        } else {
+            this.props.getAllWatchlists((list) => {
+                console.log(list);
+                activeWatchlist = list.find(item => item.default);
+                this.initalizeWatchlist(activeWatchlist._id);
+            });
         }
     }
 
-    initalizeWatchlist = async () => {
+    // componentWillReceiveProps(nextProps) {
+    //     if (nextProps.common.activeWatchlistIndex !== this.props.common.activeWatchlistIndex) {
+    //         this.initalizeWatchlist();
+    //     }
+    // }
+
+    initalizeWatchlist = async (watchlistId) => {
         // make api call to get data for each item in watchlist
-        const companies = await this.props.getActiveWatchlistData();
+        const companies = await this.props.getActiveWatchlistData(watchlistId);
         const watchlist = { companies };
         this.props.getWatchlistData(watchlist.companies, (priceVolumeData) => {
             const watchlistData = [];
@@ -196,19 +205,23 @@ class Watchlist extends React.Component {
     }
 
     removeStock = (index) => {
-        const watchlistData = [...this.state.watchlistData];
-        const removedItemFromWatchlistData = watchlistData.splice(index, 1)[0];
-        const watchlist = this.state.watchlist;
-        const matchingIndexInWatchlist = watchlist.companies.findIndex(item => item.name === removedItemFromWatchlistData.name);
-        const removedItemFromWatchlist = watchlist.companies.splice(matchingIndexInWatchlist, 1)[0];
-        setActiveWatchlistData(watchlist);
-        this.setState({
-            watchlist,
-            watchlistData,
-            // averagePriceChange: [calculateAveragePriceChange(watchlistData, 0), calculateAveragePriceChange(watchlistData, 1), calculateAveragePriceChange(watchlistData, 2), calculateAveragePriceChange(watchlistData, 4), calculateAveragePriceChange(watchlistData, 8)],
-            averagePriceChange: this.getAveragePriceChange(watchlistData),
+        const companyId = this.state.watchlistData[index]._id;
+        // const watchlistId = this.props.common.activeWatchlist._id;
+        this.props.removeCompany(companyId, () => {
+            const watchlistData = [...this.state.watchlistData];
+            const removedItemFromWatchlistData = watchlistData.splice(index, 1)[0];
+            const watchlist = this.state.watchlist;
+            const matchingIndexInWatchlist = watchlist.companies.findIndex(item => item.name === removedItemFromWatchlistData.name);
+            const removedItemFromWatchlist = watchlist.companies.splice(matchingIndexInWatchlist, 1)[0];
+            // setActiveWatchlistData(watchlist);
+            this.setState({
+                watchlist,
+                watchlistData,
+                // averagePriceChange: [calculateAveragePriceChange(watchlistData, 0), calculateAveragePriceChange(watchlistData, 1), calculateAveragePriceChange(watchlistData, 2), calculateAveragePriceChange(watchlistData, 4), calculateAveragePriceChange(watchlistData, 8)],
+                averagePriceChange: this.getAveragePriceChange(watchlistData),
+            });
+            // return removedItemFromWatchlist;
         });
-        return removedItemFromWatchlist;
     }
 
     moveStock = (index, targetWatchlistIndex) => {
@@ -228,7 +241,7 @@ class Watchlist extends React.Component {
             let message = 'Item moved/copied successfully!!';
             const storageData = getStorageData();
             const watchlistData = storageData.watchlistData[targetWatchlistIndex];
-            const isDuplicate = watchlistData.companies.find(item => item.id === company.id);
+            const isDuplicate = watchlistData.companies.find(item => item.companyId === company.companyId);
             if (isDuplicate) {
                 message = 'Item already exist in target watchlist!!';
             } else {
@@ -245,7 +258,7 @@ class Watchlist extends React.Component {
 
     renderChart = (historicalData, index) => {
         return (
-            <ChartRender key={index} processedData = {historicalData}/>
+            <ChartRender processedData = {historicalData}/>
         );
     }
 
@@ -291,27 +304,13 @@ class Watchlist extends React.Component {
 
     renderHeaders = (averagePriceChange) => {
         let counter = 1;
-        const arr = this.state.chartWidth ? averagePriceChange.slice(0, 6) : averagePriceChange;
-        return arr.map((value, valueIndex) => {
-            if (!value || !valueIndex) { return null; }
-            const label = weeksArrayMapper[counter++].label;
-            return (
-                <th>
-                    <div onClick={() => this.sortBy(`priceChange.${valueIndex}`, true)}>{label} {value} %</div>
-                </th>
-            );
-        });
-    }
-
-    renderHeaders = (averagePriceChange) => {
-        let counter = 1;
         // const testArr = averagePriceChange.
         const arr = this.state.chartWidth ? averagePriceChange.slice(0, 14) : averagePriceChange;
         return arr.map((value, valueIndex) => {
             if (!value || !valueIndex) { return null; }
             const label = weeksArrayMapper[counter++].label;
             return (
-                <th>
+                <th key={value}>
                     <div onClick={() => this.sortBy(`priceChange.${valueIndex}`, true)}>{label} {value} %</div>
                 </th>
             );
@@ -424,7 +423,9 @@ const mapDispatchToProps = {
     getActiveWatchlistData,
     setCompareList,
     getComparisionListData,
-    setError
+    setError,
+    getAllWatchlists,
+    removeCompany,
     // moveStock
 };
 

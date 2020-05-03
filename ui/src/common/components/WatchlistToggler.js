@@ -27,16 +27,19 @@ class WatchlistToggler extends React.PureComponent {
     this.setState({ toggleWatchlistContainer: !this.state.toggleWatchlistContainer });
   }
   render () {
-      const { watchlistData, activeWatchlistIndex } = this.props.common;
-      const activeWatchlistName = watchlistData[activeWatchlistIndex].name;
+      const { watchlistData, activeWatchlistIndex, activeWatchlist } = this.props.common;
+      if (!watchlistData) {
+        return null;
+      }
+      const activeWatchlistName = activeWatchlist.name;
       return (
         <div className="pull-right toggleWatchlistContainer">
           <button className="custom-button" onClick={this.toggleWatchlistContainer}>Watchlist: <b>{activeWatchlistName}</b></button>
           {this.state.toggleWatchlistContainer && 
             <div className="listContainer">
               {watchlistData.map((item, index) => {
-                  const customStyle = index === activeWatchlistIndex ? {fontWeight: 800 } : {} ; 
-                  return(<li onClick={() => this.selectWatchlist(index)} style={customStyle}>{item.name}</li>);
+                  const customStyle = item._id === activeWatchlist._id ? {fontWeight: 800 } : {} ; 
+                  return(<li key={index} onClick={() => this.selectWatchlist(index)} style={customStyle}>{item.name}</li>);
               })}
               <li><button style={{background: '#aaa', color: 'white'}} className="custom-button" onClick={this.addNewWatchlist}>Add new list</button></li>
             </div>

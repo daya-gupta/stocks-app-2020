@@ -19,9 +19,9 @@ export const getWatchlistData = (watchlist, callback) => {
     return (dispatch) => {
         const promises = [];
         watchlist.forEach(element => {
-            const companyId = element.id;
-            const test = axios.get(`${baseUrl}/historicalData?companyId=${companyId}&duration=${duration}`);
-            const test1 = axios.get(`${baseUrl}/historicalData?companyId=${companyId}&duration=${7}`);
+            // const companyId = element.id;
+            const test = axios.get(`${baseUrl}/historicalData?companyId=${element.companyId}&duration=${duration}`);
+            const test1 = axios.get(`${baseUrl}/historicalData?companyId=${element.companyId}&duration=${7}`);
             promises.push(test);
             promises.push(test1);
         });
@@ -44,12 +44,23 @@ export const updataWatchlistData = (data) => {
     return (dispatch)=> dispatch({type:'UPDATE_WATCHLIST_DATA', data})
 }
 
-export const getActiveWatchlistData = () => {
+export const getActiveWatchlistData = (watchlistId) => {
     return async (dispatch) => {
         dispatch({ type: 'SHOW_LOADER' });
-        const companies = await axios.get(`${baseUrl}/api/getCompanies`)
+        const companies = await axios.get(`${baseUrl}/api/company/watchlist/${watchlistId}`);
         dispatch({ type: 'HIDE_LOADER' });
         return companies.data;
+    }
+}
+
+export const updateComment = (company, callback) => {
+    return (dispatch) => {
+        dispatch({ type: 'SHOW_LOADER' });
+        const promise = axios.put(`${baseUrl}/api/company/${company._id}`, {comment: company.comment});
+        promise.then(res => {
+            dispatch({ type: 'HIDE_LOADER' });
+            callback && callback();
+        })
     }
 }
 
