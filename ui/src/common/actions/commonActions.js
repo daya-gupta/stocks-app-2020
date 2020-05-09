@@ -12,30 +12,36 @@ export const setError = ({ message, isHtml = false, messageType = 'error'}) => {
 }
 
 export const selectWatchlist = (selectedIndex) => {
-    const storageData = getStorageData();
-    storageData.activeWatchlistIndex = selectedIndex;
-    // updateLocalStorage(storageData);
-    setStorageData(storageData);
     return { type: 'ACTIVE_WATCHLIST_CHANGED', data: selectedIndex };
 }
 
-export const addNewWatchlist = (name) => {
-    const storageData = getStorageData();
-    // const label = name.split(' ').join('').toLowerCase();
-    storageData.watchlistData.push({ name, companies: [] });
-    // storageData.watchlistData[label] = [];
-    setStorageData(storageData);
-    return { type: 'NEW_WATCHLIST_ADDED', data: storageData };
+export const addWatchlist = (name, color) => {
+    return (dispatch) => {
+        const payload = {
+            name,
+            color,
+            default: false,
+        }
+        dispatch({ type: 'SHOW_LOADER' });
+        const promise = axios.post(`${baseUrl}/api/watchlist`, payload);
+        promise.then((res) => {
+            dispatch({ type: 'HIDE_LOADER' });
+            // TBD show success message
+            getAllWatchlists()(dispatch);
+        });
+    };
 }
 
-export const updateMetadata = (companyId, metadataType, metadataValue) => {
-    const storageData = getStorageData();
-    const watchlistMetadata = (storageData.metadata || {});
-    const companyMetadata = watchlistMetadata[companyId] || {};
-    companyMetadata[metadataType] = metadataValue;
-    storageData.metadata[companyId] = companyMetadata;
-    setStorageData(storageData);
-    return { type: 'METADATA_CHANGED', data: watchlistMetadata };
+export const deleteWatchlist = (_id) => {
+    return (dispatch) => {
+        dispatch({ type: 'SHOW_LOADER' });
+        const promise = axios.delete(`${baseUrl}/api/watchlist/${_id}`);
+        promise.then((res) => {
+            dispatch({ type: 'HIDE_LOADER' });
+            // TBD show success message
+            getAllWatchlists()(dispatch);
+        });
+    };
 }
 
 export const getAllWatchlists = (callback) => {
@@ -59,10 +65,34 @@ export const removeCompany = (companyId, callback) => {
     }
 }
 
-export const updateComment = (company, callback) => {
+export const moveCompany = (companyId, watchlistIndex, callback) => {
+    return async(dispatch, getState) => {
+        const targetWatchlist = getState().common.watchlistData[watchlistIndex];
+        dispatch({ type: 'SHOW_LOADER' });
+        // const promise = axios.put(`${baseUrl}/api/company/${company._id}`, {comment: company.comment});
+        try {
+            await axios.put(`${baseUrl}/api/company/${companyId}`, {watchlistId: targetWatchlist._id});
+            dispatch({ type: 'HIDE_LOADER' });
+            callback && callback(true);
+        } catch (e) {
+            dispatch({ type: 'HIDE_LOADER' });
+        }
+    }
+}
+
+export const updateComment = (_id, comment, callback) => {
     return async(dispatch) => {
         dispatch({ type: 'SHOW_LOADER' });
-        await axios.put(`${baseUrl}/api/company/${company._id}`, {comment: company.comment});
+        await axios.put(`${baseUrl}/api/company/${_id}`, {comment});
+        dispatch({ type: 'HIDE_LOADER' });
+        callback && callback();
+    }
+}
+
+export const updateColor = (_id, color, callback) => {
+    return async(dispatch) => {
+        dispatch({ type: 'SHOW_LOADER' });
+        await axios.put(`${baseUrl}/api/company/${_id}`, {color});
         dispatch({ type: 'HIDE_LOADER' });
         callback && callback();
     }

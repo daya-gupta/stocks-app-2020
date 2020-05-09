@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { connect } from 'react-redux';
 import { getWatchlistData, setCompareList, updataWatchlistData, getActiveWatchlistData } from './actions';
 import { getComparisionListData } from '../comparision/action';
-import { setError, getAllWatchlists, removeCompany } from '../common/actions/commonActions';
+import { setError, getAllWatchlists, removeCompany, moveCompany } from '../common/actions/commonActions';
 import Form from 'react-bootstrap/Form';
 // import { Link } from 'react-router-dom';
 import WatchlistRow from './components/watchlistRow';
@@ -31,28 +31,30 @@ class Watchlist extends React.Component {
     }
 
     componentDidMount() {
-        let activeWatchlist = this.props.common.activeWatchlist;
+        let activeWatchlist = this.props.activeWatchlist;
         if (activeWatchlist) {
-            this.initalizeWatchlist(activeWatchlist._id);
+            this.initalizeWatchlist(activeWatchlist);
         } else {
             this.props.getAllWatchlists((list) => {
-                console.log(list);
                 activeWatchlist = list.find(item => item.default);
-                this.initalizeWatchlist(activeWatchlist._id);
+                this.initalizeWatchlist(activeWatchlist);
             });
         }
     }
 
-    // componentWillReceiveProps(nextProps) {
-    //     if (nextProps.common.activeWatchlistIndex !== this.props.common.activeWatchlistIndex) {
-    //         this.initalizeWatchlist();
-    //     }
-    // }
+    componentWillReceiveProps(nextProps) {
+        // if (nextProps.common.activeWatchlistIndex !== this.props.common.activeWatchlistIndex) {
+        if (nextProps.activeWatchlist && nextProps.activeWatchlist !== this.props.activeWatchlist) {
+            const activeWatchlist = nextProps.activeWatchlist;
+            this.initalizeWatchlist(activeWatchlist);
+        }
+    }
 
-    initalizeWatchlist = async (watchlistId) => {
+    initalizeWatchlist = async (w) => {
+        // const watchlistId = this.props.common.activeWatchlist._id;
         // make api call to get data for each item in watchlist
-        const companies = await this.props.getActiveWatchlistData(watchlistId);
-        const watchlist = { companies };
+        const companies = await this.props.getActiveWatchlistData(w);
+        const watchlist = {companies};
         this.props.getWatchlistData(watchlist.companies, (priceVolumeData) => {
             const watchlistData = [];
             const growthScoreArr = [];
@@ -77,22 +79,15 @@ class Watchlist extends React.Component {
                     const price1 = [...priceVolumeDataItem1.data.datasets[0].values.map(item => Number(item[1]))];
                     const lastPrice = price1.pop();
                     const secondLastPrice = price1.pop();
-                    // price.pop();
-                    // price.push(secondLastPrice);
-                    // price.push(lastPrice);
                     price.splice(price.length - 1, 1, secondLastPrice, lastPrice);
 
                     const volume = [...priceVolumeDataItem.data.datasets[1].values.map(item => Number(item[1]))];
                     const volume1 = [...priceVolumeDataItem1.data.datasets[1].values.map(item => Number(item[1]))];
                     const lastVolume = volume1.pop();
                     const secondLastVolume = volume1.pop();
-                    // price.pop();
-                    // price.push(secondLastPrice);
-                    // price.push(lastPrice);
                     volume.splice(volume.length - 1, 1, secondLastVolume, lastVolume);
 
                     const change = this.calculateChange(index, { price, volume });
-                    // const priceChange = [calculatePriceChange(price, 0), calculatePriceChange(price, 1), calculatePriceChange(price, 2), calculatePriceChange(price, 4), calculatePriceChange(price, 8)]
                     const priceChange = this.getPriceChange(price);
                             
                     watchlistData.push({
@@ -110,7 +105,6 @@ class Watchlist extends React.Component {
                 this.setState({
                     watchlist,
                     watchlistData,
-                    // averagePriceChange: [calculateAveragePriceChange(watchlistData, 0), calculateAveragePriceChange(watchlistData, 1), calculateAveragePriceChange(watchlistData, 2), calculateAveragePriceChange(watchlistData, 4), calculateAveragePriceChange(watchlistData, 8)],
                     averagePriceChange: this.getAveragePriceChange(watchlistData),
                 });
             });
@@ -164,7 +158,7 @@ class Watchlist extends React.Component {
             }
         } else {
             const checked = event.target.checked;
-            const matchingIndexInWatchlist = this.state.watchlist.companies.findIndex(item => item.name === watchlistDataItem.name);
+            const matchingIndexInWatchlist = watchlist.companies.findIndex(item => item.name === watchlistDataItem.name);
             const watchlistItem = watchlist.companies[matchingIndexInWatchlist];
             watchlistItem.checked = checked;
             watchlistDataItem.checked = checked;
@@ -206,54 +200,41 @@ class Watchlist extends React.Component {
 
     removeStock = (index) => {
         const companyId = this.state.watchlistData[index]._id;
-        // const watchlistId = this.props.common.activeWatchlist._id;
         this.props.removeCompany(companyId, () => {
-            const watchlistData = [...this.state.watchlistData];
-            const removedItemFromWatchlistData = watchlistData.splice(index, 1)[0];
-            const watchlist = this.state.watchlist;
-            const matchingIndexInWatchlist = watchlist.companies.findIndex(item => item.name === removedItemFromWatchlistData.name);
-            const removedItemFromWatchlist = watchlist.companies.splice(matchingIndexInWatchlist, 1)[0];
-            // setActiveWatchlistData(watchlist);
-            this.setState({
-                watchlist,
-                watchlistData,
-                // averagePriceChange: [calculateAveragePriceChange(watchlistData, 0), calculateAveragePriceChange(watchlistData, 1), calculateAveragePriceChange(watchlistData, 2), calculateAveragePriceChange(watchlistData, 4), calculateAveragePriceChange(watchlistData, 8)],
-                averagePriceChange: this.getAveragePriceChange(watchlistData),
-            });
-            // return removedItemFromWatchlist;
+            this.removeCompanyAndUpdateWatchlist(index)
         });
     }
 
-    moveStock = (index, targetWatchlistIndex) => {
-        let company = null;
-        if (!this.props.common.activeWatchlistIndex) {
-            // if origin is master watchlist - do a copy instead
-            const watchlistData = [...this.state.watchlistData];
-            const companyInWatchlistData = watchlistData[index];
-            const watchlist = this.state.watchlist;
-            const matchingIndexInWatchlist = watchlist.companies.findIndex(item => item.name === companyInWatchlistData.name);
-            company = watchlist.companies[matchingIndexInWatchlist];
-        } else {
-            // remove stock from current watchlist and add in target watchlist
-            company = this.removeStock(index);
-        }
-        if (company) {
-            let message = 'Item moved/copied successfully!!';
-            const storageData = getStorageData();
-            const watchlistData = storageData.watchlistData[targetWatchlistIndex];
-            const isDuplicate = watchlistData.companies.find(item => item.companyId === company.companyId);
-            if (isDuplicate) {
-                message = 'Item already exist in target watchlist!!';
-            } else {
-                watchlistData.companies.push(company);
-                storageData.watchlistData[targetWatchlistIndex] = watchlistData;
-                setStorageData(storageData);
-                updataWatchlistData(storageData.watchlistData);
+    removeCompanyAndUpdateWatchlist = (index) => {
+        const watchlistData = [...this.state.watchlistData];
+        const removedItemFromWatchlistData = watchlistData.splice(index, 1)[0];
+        const watchlist = this.state.watchlist;
+        const matchingIndexInWatchlist = watchlist.companies.findIndex(item => item.name === removedItemFromWatchlistData.name);
+        const removedItemFromWatchlist = watchlist.companies.splice(matchingIndexInWatchlist, 1)[0];
+        this.setState({
+            watchlist,
+            watchlistData,
+            averagePriceChange: this.getAveragePriceChange(watchlistData),
+        });
+    }
+
+    moveStock = (stockIndex, watchlistIndex) => {
+        const watchlistData = [...this.state.watchlistData];
+        const companyInWatchlistData = watchlistData[stockIndex];
+        const watchlist = this.state.watchlist;
+        const matchingIndexInWatchlist = watchlist.companies.findIndex(item => item.name === companyInWatchlistData.name);
+        const company = watchlist.companies[matchingIndexInWatchlist];
+        this.props.moveCompany(company._id, watchlistIndex, (success) => {
+            if (success) {
+                const message = 'Item moved/copied successfully!!';
+                const error = { message };
+                this.props.setError(error);
+                // if origin is master watchlist - do a copy instead
+                if (!this.props.activeWatchlist.default) {
+                    this.removeCompanyAndUpdateWatchlist(stockIndex);
+                }
             }
-            // notification
-            const error = { message };
-            this.props.setError(error);
-        }
+        })
     }
 
     renderChart = (historicalData, index) => {
@@ -304,7 +285,6 @@ class Watchlist extends React.Component {
 
     renderHeaders = (averagePriceChange) => {
         let counter = 1;
-        // const testArr = averagePriceChange.
         const arr = this.state.chartWidth ? averagePriceChange.slice(0, 14) : averagePriceChange;
         return arr.map((value, valueIndex) => {
             if (!value || !valueIndex) { return null; }
@@ -415,7 +395,8 @@ class Watchlist extends React.Component {
 
 const mapStateToProps = (state) => ({
     watchlist: state.watchlist,
-    common: state.common
+    common: state.common,
+    activeWatchlist: state.common.activeWatchlist
 })
 
 const mapDispatchToProps = {
@@ -426,7 +407,7 @@ const mapDispatchToProps = {
     setError,
     getAllWatchlists,
     removeCompany,
-    // moveStock
+    moveCompany
 };
 
 const connectedComponent = connect(mapStateToProps, mapDispatchToProps)(Watchlist);

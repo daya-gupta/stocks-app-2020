@@ -44,18 +44,6 @@ const commonReducer = (state = initialState, action) => {
                 error: action.data
             }
         }
-        case 'ACTIVE_WATCHLIST_CHANGED': {
-            return {
-                ...state,
-                activeWatchlistIndex: action.data
-            }
-        }
-        case 'WATCHLIST_CHANGED': {
-            return {
-                ...state,
-                watchlistData: action.data
-            }
-        }
         case 'METADATA_CHANGED': {
             return {
                 ...state,
@@ -74,6 +62,13 @@ const commonReducer = (state = initialState, action) => {
                 ...state,
                 watchlistData: action.data,
                 activeWatchlist 
+            }
+        }
+        case 'ACTIVE_WATCHLIST_CHANGED': {
+            const watchlistData = state.watchlistData;
+            return {
+                ...state,
+                activeWatchlist: watchlistData[action.data]
             }
         }
         default: return state;

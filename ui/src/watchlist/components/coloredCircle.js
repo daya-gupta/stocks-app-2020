@@ -1,8 +1,8 @@
 import React from 'react';
-import { updateMetadata, updateComment } from '../../common/actions/commonActions';
+import { updateColor, updateComment } from '../../common/actions/commonActions';
 import {connect} from 'react-redux'
 
-const colorCodes = ['a', 'b', 'c', 'd'];
+const colorCodes = ['grey', 'blue', 'orange', 'red', 'teal'];
 // portpholop, observable-positive, observable-negative and defect respectively 
 
 class ColoredCircle extends React.PureComponent {
@@ -17,20 +17,14 @@ class ColoredCircle extends React.PureComponent {
         this.setState({ showNote, showOptions: false })
     }
 
-    updateMetadata = (itemId, type, value) => {
-        if (type === 'color') {
-            this.setState({ showOptions: false });
-        } else if (type === 'note') {
-            value = this.textarea.value;
-            this.setState({ showNote: false });
-        }
-        // tbd confirm change
-        // this.props.dispatch(this.props.updateMetadata(itemId, type, value));
+    updateColor = (_id, color) => {
+        this.setState({ showOptions: false });
+        this.props.updateColor(_id, color);
     }
 
-    updateNote = (company) => {
-        company.comment = this.textarea.value || '';
-        this.props.updateComment(company);
+    updateComment = (company) => {
+        const comment = this.textarea.value || '';
+        this.props.updateComment(company._id, comment);
         this.setState({ showNote: false });
     }
 
@@ -43,11 +37,8 @@ class ColoredCircle extends React.PureComponent {
         const { showOptions, showNote } = this.state;
         const { item, common } = this.props;
         const watchlistData = common.watchlistData;
-        // const item = watchlistData[index];
-        const metadata = common.metadata || {};
-        // const note = (metadata[item.id] || {}).note;
         const note = item.comment;
-        const color = (metadata[item.id] || {}).color;
+        const color = item.color;
         const className = `coloredCircle ${color}`;
         return (
             <React.Fragment>
@@ -63,13 +54,13 @@ class ColoredCircle extends React.PureComponent {
                         >
                         </textarea>
                     </div>
-                    <button style={{ background: 'white' }} className="pull-right" onClick={() => this.updateNote(item)}>Save</button>
+                    <button style={{ background: 'white' }} className="pull-right" onClick={() => this.updateComment(item)}>Save</button>
                 </div>}
                 {showOptions && <div className="moreActions">
                     {
                         colorCodes.map(color => {
                             const className = `coloredCircle ${color}`;
-                            return <span key={color} className={className} onClick={() => this.updateMetadata(item.companyId, 'color', color)}></span>;
+                            return <span key={color} className={className} onClick={() => this.updateColor(item._id, color)}></span>;
                         })
                     }
                     <hr />
@@ -88,14 +79,8 @@ const mapStateToProps = (state) => ({
     common: state.common
 });
 
-// const mapDispatchToProps = (dispatch) => ({
-//     updateMetadata,
-//     updateComment,
-//     dispatch
-// });
-
 const mapDispatchToProps = {
-    updateMetadata,
+    updateColor,
     updateComment,
     // dispatch
 };

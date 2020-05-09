@@ -8,7 +8,7 @@ const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 
 const ObjectId = mongoose.Types.ObjectId;
-
+const userId = '5ead1902a870ac38d18bd50c';
 const environment = process.env.ENVIRONMENT || 'dev';
 
 console.log('HOST', process.env.HOST, process.env.ENVIRONMENT);
@@ -213,9 +213,6 @@ const dbConfig = {
 // const prodUrl = 'mongodb://test-cosmos-1:bzRmqiwJi3pLAa7b2V4oA9qBuVd8FNwW2FtmWQi5EtISlo1nmxwd5IQAauWtYlCLM5Fs8UHITtjziFYZ2fkmlQ==@test-cosmos-1.mongo.cosmos.azure.com:10255/?ssl=true&appName=@test-cosmos-1@';
 // const localUrl = `mongodb://${dbConfig.uri}:${dbConfig.port}/${dbConfig.name}`;
 // const dbUrl = process.env.environment === 'production' ? prodUrl : localUrl;
-
-const userId = '5ead1902a870ac38d18bd50c';
-
 const dbUrl = process.env.dbUrl;
 let db = null;
 
@@ -302,7 +299,8 @@ mongoose.connect(dbUrl, dbConfig.options)
   });
 
   app.get('/api/watchlist', (req, res) => {
-    db.collection('watchlist').find({}).toArray((err, data) => {
+    const query = {userId};
+    db.collection('watchlist').find(query).toArray((err, data) => {
       if (err) {
         return res.status(500).send(err);
       }
@@ -316,6 +314,15 @@ mongoose.connect(dbUrl, dbConfig.options)
         return res.status(500).send(err);
       }
       res.status(200).send(data);
+    });
+  });
+
+  app.delete('/api/watchlist/:_id', (req, res) => {
+    db.collection('watchlist').deleteOne({_id: req.params._id}, (err, response) => {
+      if (err) {
+        res.error(err);
+      }
+      res.status(200).send({message: 'stock removed successfully'});
     });
   });
 
@@ -349,7 +356,11 @@ mongoose.connect(dbUrl, dbConfig.options)
   });
 
   app.get('/api/company/watchlist/:watchlistId', (req, res) => {
-    db.collection('company_list').find({watchlistId: req.params.watchlistId}).toArray((err, data) => {
+    const query = { userId };
+    if (req.params.watchlistId !== '0') {
+      query.watchlistId = req.params.watchlistId;
+    }
+    db.collection('company_list').find(query).toArray((err, data) => {
       if (err) {
         return res.status(500).send(err);
       }

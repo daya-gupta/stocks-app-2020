@@ -44,8 +44,9 @@ export const updataWatchlistData = (data) => {
     return (dispatch)=> dispatch({type:'UPDATE_WATCHLIST_DATA', data})
 }
 
-export const getActiveWatchlistData = (watchlistId) => {
+export const getActiveWatchlistData = (watchlist) => {
     return async (dispatch) => {
+        const watchlistId = watchlist.default ? 0 : watchlist._id;
         dispatch({ type: 'SHOW_LOADER' });
         const companies = await axios.get(`${baseUrl}/api/company/watchlist/${watchlistId}`);
         dispatch({ type: 'HIDE_LOADER' });
