@@ -1,14 +1,6 @@
-// const localStorageNode = 'app-data';
-import { getStorageData } from '../common/util';
-
-const storageData = getStorageData();
-
 const initialState = {
     showLoader: false,
     compareList : [],
-    // activeWatchlistIndex: storageData.activeWatchlistIndex,
-    // watchlistData: storageData.watchlistData,
-    // ...storageData,
     watchlistData: null,
     activeWatchlist: null,
     error: null
@@ -44,12 +36,6 @@ const commonReducer = (state = initialState, action) => {
                 error: action.data
             }
         }
-        case 'METADATA_CHANGED': {
-            return {
-                ...state,
-                metadata: action.data
-            }
-        }
         case 'NEW_WATCHLIST_ADDED': {
             return {
                 ...state,
@@ -57,7 +43,7 @@ const commonReducer = (state = initialState, action) => {
             }
         }
         case 'SET_USER_WATCHLIST': {
-            const activeWatchlist = action.data.find(item => item.default);
+            const activeWatchlist = action.data.find(item => item.active) || action.data[0];
             return {
                 ...state,
                 watchlistData: action.data,
@@ -65,10 +51,9 @@ const commonReducer = (state = initialState, action) => {
             }
         }
         case 'ACTIVE_WATCHLIST_CHANGED': {
-            const watchlistData = state.watchlistData;
             return {
                 ...state,
-                activeWatchlist: watchlistData[action.data]
+                activeWatchlist: action.data
             }
         }
         default: return state;

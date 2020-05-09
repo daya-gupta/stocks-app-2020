@@ -11,13 +11,13 @@ const RemoveStockBtn = styled.button`
 
 export default class WatchlistRow extends React.PureComponent {
   render = () => {
-      const { item, index, handleCheckboxChange, renderChart, removeStock, moveStock, watchlist, watchlistData, priceChangeRange, weeksArr, chartWidth } = this.props;
+      const { item, company, index, handleCheckboxChange, renderChart, removeStock, moveStock,
+        priceChangeRange, weeksArr, chartWidth, updateCompany } = this.props;
       const scoreR = item.growthScore.revenueScore;
       const scoreP = item.growthScore.profitScore;
-      const name = item.name;
-      const url = item.url;
+      const {name, url} = company;
       const checked = item.checked;
-      const change = item.change;
+    //   const change = item.change;
 
       return (
           <tr key={index}>
@@ -25,7 +25,7 @@ export default class WatchlistRow extends React.PureComponent {
                   <Form.Check type='checkbox' checked={checked} onChange={handleCheckboxChange} />
               </td>
               <td>
-                  <ColoredCircle item={item} moveStock={moveStock} />
+                  <ColoredCircle updateCompany={updateCompany} company={company} moveStock={moveStock} />
               </td>
               <td>{scoreR}, {scoreP}</td>
               <td>

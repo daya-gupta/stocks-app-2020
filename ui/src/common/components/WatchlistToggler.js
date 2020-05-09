@@ -7,14 +7,21 @@ const watchlistColors = ['white', 'green', 'orange', 'red', 'teal', 'black'];
 
 class WatchlistToggler extends React.PureComponent {
   state = { addFlow: false }
-  selectWatchlist = (index) => {
-    this.props.selectWatchlist(index);
+  
+  selectWatchlist = (watchlist) => {
+    const activeWatchlist = this.props.common.activeWatchlist;
+    if (activeWatchlist._id === watchlist._id) {
+      return;
+    }
+    this.props.selectWatchlist(watchlist);
     this.toggleWatchlistContainer();
   }
+  
   addWatchlist = () => {
     this.setState({ addFlow: true });
     this.toggleWatchlistContainer();
   }
+  
   confirmNewWatchlist = (isConfirmed) => {
     if (isConfirmed) {
       // read given name and add to store
@@ -26,17 +33,21 @@ class WatchlistToggler extends React.PureComponent {
     }
     this.setState({ addFlow: false });
   }
+
   toggleWatchlistContainer = () => {
     this.setState({ toggleWatchlistContainer: !this.state.toggleWatchlistContainer });
   }
-  deleteWatchlist = (watchlist) => {
-    const confirm = confirm(`Please confirm that you want to delete ${watchlist.name} watchlist`);
+
+  deleteWatchlist = (e, watchlist) => {
+    e.stopPropagation();
+    const confirm = window.confirm(`Please confirm that you want to delete ${watchlist.name} watchlist`);
     if (confirm) {
       this.props.deleteWatchlist(watchlist._id);
     }
   }
+
   render () {
-      const { watchlistData, activeWatchlistIndex, activeWatchlist } = this.props.common;
+      const { watchlistData, activeWatchlist } = this.props.common;
       if (!watchlistData) {
         return null;
       }
@@ -49,10 +60,10 @@ class WatchlistToggler extends React.PureComponent {
               {watchlistData.map((item, index) => {
                   const customStyle = item._id === activeWatchlist._id ? {fontWeight: 800 } : {} ; 
                   return(
-                    <li key={index} onClick={() => this.selectWatchlist(index)} style={customStyle}>
+                    <li key={index} onClick={() => this.selectWatchlist(item)} style={customStyle}>
                       <span style={{ backgroundColor: item.color }}>t</span>
                       <span>{item.name}</span>
-                      <button disabled={item.default} className="pull-right" onClick={() => this.deleteWatchlist(item)}>&times;</button>
+                      <button disabled={item.default} className="pull-right" onClick={(e) => this.deleteWatchlist(e, item)}>&times;</button>
                     </li>
                   );
               })}
@@ -64,7 +75,7 @@ class WatchlistToggler extends React.PureComponent {
               <div>
                 <input type="text" ref={(item) => {this.nameInput = item;}} placeholder="Watchlist name..." />
                 <button className="custom-button" onClick={() => this.confirmNewWatchlist(true)}>Save</button>&nbsp;&nbsp;
-                <button className="custom-button" onClick={this.confirmNewWatchlist}>Cance</button>
+                <button className="custom-button" onClick={this.confirmNewWatchlist}>Cance;</button>
               </div>
             </div>
           }

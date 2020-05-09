@@ -9,23 +9,27 @@ class ColoredCircle extends React.PureComponent {
     state = {}
     toggleOptions = () => {
         const showOptions = !this.state.showOptions;
-        this.setState({ showOptions, showNote: false });
+        this.setState({ showOptions, showComment: false });
     }
 
-    toggleNote = () => {
-        const showNote = !this.state.showNote;
-        this.setState({ showNote, showOptions: false })
+    toggleComment = () => {
+        const showComment = !this.state.showComment;
+        this.setState({ showComment, showOptions: false })
     }
 
     updateColor = (_id, color) => {
-        this.setState({ showOptions: false });
-        this.props.updateColor(_id, color);
+        this.props.updateColor(_id, color, () => {
+            this.setState({ showOptions: false });
+            this.props.updateCompany({color});
+        });
     }
 
     updateComment = (company) => {
         const comment = this.textarea.value || '';
-        this.props.updateComment(company._id, comment);
-        this.setState({ showNote: false });
+        this.props.updateComment(company._id, comment, () => {
+            this.setState({ showComment: false });
+            this.props.updateCompany({comment});
+        });
     }
 
     moveStock = (index) => {
@@ -34,33 +38,34 @@ class ColoredCircle extends React.PureComponent {
     }
   
     render = () => {
-        const { showOptions, showNote } = this.state;
-        const { item, common } = this.props;
+        const { showOptions, showComment } = this.state;
+        const { company, common } = this.props;
         const watchlistData = common.watchlistData;
-        const note = item.comment;
-        const color = item.color;
+        const {comment, color, name} = company;
         const className = `coloredCircle ${color}`;
         return (
             <React.Fragment>
                 <button style={{ margin: '3px' }} className={className} onClick={this.toggleOptions}></button>
-                <button className="custom-button" onClick={this.toggleNote}>i</button>
-                {showNote && <div style={{ width: 'auto' }} className="moreActions">
-                    <button style={{ margin: '-6px, -6px, 0 0' }} className="custom-button pull-right" onClick={this.toggleNote}>&times;</button>
-                    <h6 className="pull-left">{item.name}</h6>
+                <button className="custom-button" onClick={this.toggleComment}>i</button>
+                {showComment && <div style={{ width: 'auto' }} className="moreActions">
+                    <button style={{ margin: '-6px, -6px, 0 0' }} className="custom-button pull-right" onClick={this.toggleComment}>&times;</button>
+                    <h6 className="pull-left">{name}</h6>
                     <div>
                         <textarea
                             ref={item => this.textarea = item}
-                            defaultValue={note}
+                            defaultValue={comment}
                         >
                         </textarea>
                     </div>
-                    <button style={{ background: 'white' }} className="pull-right" onClick={() => this.updateComment(item)}>Save</button>
+                    <button style={{ background: 'white' }} className="pull-right" onClick={() => this.updateComment(company)}>Save</button>
                 </div>}
                 {showOptions && <div className="moreActions">
+                    <b>Label:</b>
+                    <br />
                     {
                         colorCodes.map(color => {
                             const className = `coloredCircle ${color}`;
-                            return <span key={color} className={className} onClick={() => this.updateColor(item._id, color)}></span>;
+                            return <span key={color} className={className} onClick={() => this.updateColor(company._id, color)}></span>;
                         })
                     }
                     <hr />

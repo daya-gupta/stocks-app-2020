@@ -11,8 +11,16 @@ export const setError = ({ message, isHtml = false, messageType = 'error'}) => {
     return { type: 'SET_ERROR', data: error };
 }
 
-export const selectWatchlist = (selectedIndex) => {
-    return { type: 'ACTIVE_WATCHLIST_CHANGED', data: selectedIndex };
+export const selectWatchlist = (watchlist) => {
+    return async(dispatch) => {
+        try {
+            await axios.put(`${baseUrl}/api/watchlist/active/${watchlist._id}`);
+            dispatch({ type: 'HIDE_LOADER' });
+            dispatch({ type: 'ACTIVE_WATCHLIST_CHANGED', data: watchlist });
+        } catch (e) {
+            dispatch({ type: 'HIDE_LOADER' });
+        }
+    }
 }
 
 export const addWatchlist = (name, color) => {

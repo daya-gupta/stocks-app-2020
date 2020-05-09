@@ -317,6 +317,20 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
+  app.put('/api/watchlist/active/:_id', (req, res) => {
+    db.collection('watchlist').updateOne({userId, active: true}, {$set: {active: false}}, (err) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      db.collection('watchlist').updateOne({userId, _id: req.params._id}, {$set: {active: true}}, (err, data) => {
+        if (err) {
+          return res.status(500).send(err);
+        }
+        res.status(200).send(data);
+      });  
+    });
+  });
+
   app.delete('/api/watchlist/:_id', (req, res) => {
     db.collection('watchlist').deleteOne({_id: req.params._id}, (err, response) => {
       if (err) {
