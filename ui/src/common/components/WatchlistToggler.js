@@ -3,8 +3,6 @@ import React from 'react';
 import {connect} from 'react-redux'
 import {selectWatchlist, addWatchlist, deleteWatchlist} from '../actions/commonActions';
 
-const watchlistColors = ['white', 'green', 'orange', 'red', 'teal', 'black'];
-
 class WatchlistToggler extends React.PureComponent {
   state = { addFlow: false }
   
@@ -27,8 +25,7 @@ class WatchlistToggler extends React.PureComponent {
       // read given name and add to store
       const watchlistName = this.nameInput.value;
       if (watchlistName) {
-        const color = watchlistColors[this.props.common.watchlistData.length];
-        this.props.addWatchlist(watchlistName, color);
+        this.props.addWatchlist(watchlistName);
       }
     }
     this.setState({ addFlow: false });
@@ -61,7 +58,6 @@ class WatchlistToggler extends React.PureComponent {
                   const customStyle = item._id === activeWatchlist._id ? {fontWeight: 800 } : {} ; 
                   return(
                     <li key={index} onClick={() => this.selectWatchlist(item)} style={customStyle}>
-                      <span style={{ backgroundColor: item.color }}>t</span>
                       <span>{item.name}</span>
                       <button disabled={item.default} className="pull-right" onClick={(e) => this.deleteWatchlist(e, item)}>&times;</button>
                     </li>

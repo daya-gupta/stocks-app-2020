@@ -23,11 +23,10 @@ export const selectWatchlist = (watchlist) => {
     }
 }
 
-export const addWatchlist = (name, color) => {
+export const addWatchlist = (name) => {
     return (dispatch) => {
         const payload = {
             name,
-            color,
             default: false,
         }
         dispatch({ type: 'SHOW_LOADER' });

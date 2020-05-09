@@ -380,10 +380,11 @@ class Watchlist extends React.Component {
     }
 
     render = () => {
-        const count = ((this.state.watchlist || {}).companies || []).length;
+        const count = (this.state.companyList || []).length;
+        const activeWatchlist = this.props.common.activeWatchlist || {};
         return (
             <div>
-                <h4>Watchlist ({count} stocks)</h4>
+                <h4>{activeWatchlist.name} Watchlist ({count} stocks)</h4>
                 <button onClick={() => this.changeChartWidth()}>
                     Change Chart Width
                 </button>
