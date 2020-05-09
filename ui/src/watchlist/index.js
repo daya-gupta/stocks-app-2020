@@ -36,7 +36,7 @@ class Watchlist extends React.Component {
             this.initalizeWatchlist(activeWatchlist);
         } else {
             this.props.getAllWatchlists((list) => {
-                activeWatchlist = list.find(item => item.default);
+                activeWatchlist = list.find(item => item.active) || list[0];
                 this.initalizeWatchlist(activeWatchlist);
             });
         }
