@@ -213,6 +213,7 @@ const dbConfig = {
 // const localUrl = `mongodb://${dbConfig.uri}:${dbConfig.port}/${dbConfig.name}`;
 // const dbUrl = process.env.environment === 'production' ? prodUrl : localUrl;
 const dbUrl = process.env.dbUrl;
+console.log(dbUrl, '-----------------');
 let db = null;
 
 mongoose.connect(dbUrl, dbConfig.options)
