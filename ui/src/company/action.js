@@ -1,6 +1,7 @@
 
 import axios from 'axios';
 import {baseUrl} from '../common/constants';
+import {getUserId} from '../common/util';
 // const historicalDataApi = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=full&apikey=LYK5FRW7A27I9REB';
 // const historicalDataApi = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&apikey=LYK5FRW7A27I9REB';
 // const historicalDataApi = 'https://www.screener.in/api/2/company/3365/prices/?days=30';
@@ -83,7 +84,9 @@ export const searchCompany = (data, callback) => {
 }
 
 export const addCompany = (selectedCompany, callback) => {
-    return (dispatch) => {
+    return (dispatch, getState) => {
+        const userId = getUserId(getState);
+        selectedCompany.userId = userId;
         dispatch({ type: 'SHOW_LOADER' });
         axios.post(`${baseUrl}/api/company`, selectedCompany).then((res, error) => {
             dispatch({ type: 'HIDE_LOADER' });

@@ -3,7 +3,8 @@ const initialState = {
     compareList : [],
     watchlistData: null,
     activeWatchlist: null,
-    error: null
+    error: null,
+    users: null
 }
 
 const commonReducer = (state = initialState, action) => {
@@ -56,6 +57,32 @@ const commonReducer = (state = initialState, action) => {
                 activeWatchlist: action.data
             }
         }
+        
+        // user actions
+        case 'SET_USERS': {
+            const users = action.data;
+            if (users.length) {
+                users[0].active = true;
+            }
+            return {
+                ...state,
+                users,
+            }
+        }
+
+        case 'CHANGE_USER': {
+            const users = state.users.map(item => {
+                item.active = false;
+                return item;
+            });
+            const newUser = users.find(item => item._id === action.data._id);
+            newUser.active = true;
+            return {
+                ...state,
+                users,
+            }
+        }
+
         default: return state;
     }
 }

@@ -51,6 +51,11 @@ class Watchlist extends React.Component {
     }
 
     initalizeWatchlist = async (w) => {
+        if (!(this.props.common.users || []).length) {
+            return;
+        } else if (!w) {
+            return;
+        }
         // const watchlistId = this.props.common.activeWatchlist._id;
         // make api call to get data for each item in watchlist
         const companyList = await this.props.getActiveWatchlistData(w);
@@ -95,6 +100,7 @@ class Watchlist extends React.Component {
                         growthScore: growthScoreArr[index],
                         score: growthScoreArr[index].combinedScore,
                         change,
+                        companyId: element.companyId,
                         historicalData: { price, volume },
                         priceChange
                     });
@@ -220,7 +226,7 @@ class Watchlist extends React.Component {
         const watchlistData = [...this.state.watchlistData];
         const companyInWatchlistData = watchlistData[stockIndex];
         const companyList = this.state.companyList;
-        const matchingIndexInWatchlist = companyList.findIndex(item => item.name === companyInWatchlistData.name);
+        const matchingIndexInWatchlist = companyList.findIndex(item => item.companyId === companyInWatchlistData.companyId);
         const company = companyList[matchingIndexInWatchlist];
         this.props.moveCompany(company._id, watchlistIndex, (success) => {
             if (success) {
@@ -380,6 +386,9 @@ class Watchlist extends React.Component {
     }
 
     render = () => {
+        if (!(this.props.common.users || []).length) {
+            return null;
+        }
         const count = (this.state.companyList || []).length;
         const activeWatchlist = this.props.common.activeWatchlist || {};
         return (

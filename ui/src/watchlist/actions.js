@@ -1,6 +1,5 @@
 import axios from 'axios';
 import {baseUrl} from '../common/constants';
-// import { setStorageData, getStorageData } from "../common/util";
 
 // const duration = 366;
 const duration = 1850;
@@ -45,10 +44,11 @@ export const updataWatchlistData = (data) => {
 }
 
 export const getActiveWatchlistData = (watchlist) => {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         const watchlistId = watchlist.default ? 0 : watchlist._id;
+        const userId = watchlist.userId;
         dispatch({ type: 'SHOW_LOADER' });
-        const companies = await axios.get(`${baseUrl}/api/company/watchlist/${watchlistId}`);
+        const companies = await axios.get(`${baseUrl}/api/company/watchlist/${watchlistId}/${userId}`);
         dispatch({ type: 'HIDE_LOADER' });
         return companies.data;
     }

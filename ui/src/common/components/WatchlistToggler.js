@@ -45,7 +45,7 @@ class WatchlistToggler extends React.PureComponent {
 
   render () {
       const { watchlistData, activeWatchlist } = this.props.common;
-      if (!watchlistData) {
+      if (!watchlistData || !watchlistData.length) {
         return null;
       }
       const activeWatchlistName = activeWatchlist.name;

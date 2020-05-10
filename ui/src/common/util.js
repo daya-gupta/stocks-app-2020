@@ -38,30 +38,6 @@ export const setStorageData = (data) => {
   localStorage.setItem(localStorageNode, JSON.stringify(data));
 }
 
-export const getActiveWatchlistData = () => {
-  const storageData = getStorageData();
-  const activeWatchlistIndex = storageData.activeWatchlistIndex;
-  const activeWatchlistData = storageData.watchlistData[activeWatchlistIndex];
-  if (activeWatchlistData.name === 'Primary') {
-    const companies = storageData.watchlistData[0].companies.filter(item => !storageData.metadata[item.id] || !storageData.metadata[item.id].color || storageData.metadata[item.id].color === 'a');
-    activeWatchlistData.companies = companies;
-  } else if (activeWatchlistData.name === 'Secondary') {
-    const companies = storageData.watchlistData[0].companies.filter(item => storageData.metadata[item.id] && storageData.metadata[item.id].color === 'c');
-    activeWatchlistData.companies = companies;
-  } else if (activeWatchlistData.name === 'Test') {
-    const companies = storageData.watchlistData[0].companies.filter(item => storageData.metadata[item.id] && storageData.metadata[item.id].color === 'b');
-    activeWatchlistData.companies = companies;
-  }
-  return activeWatchlistData;
-}
-
-export const setActiveWatchlistData = (data) => {
-  const storageData = getStorageData();
-  const activeWatchlistIndex = storageData.activeWatchlistIndex;
-  storageData.watchlistData[activeWatchlistIndex] = data;
-  localStorage.setItem(localStorageNode, JSON.stringify(storageData));
-}
-
 export const processHistoricalData = (historicalData, consolidatedData = []) => {
     if (!historicalData || !historicalData.datasets || !historicalData.datasets[0]) {
         return [];
@@ -151,3 +127,9 @@ export const calculateGrowthScore = (processedData) => {
       averageRevenueScore
   };
 }
+
+export const getUserId = (getState) => {
+  const user = (getState().common.users || []).find(item => item.active) || {};
+  return user._id;
+}
+

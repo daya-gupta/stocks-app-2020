@@ -8,7 +8,6 @@ const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 
 const ObjectId = mongoose.Types.ObjectId;
-const userId = '5ead1902a870ac38d18bd50c';
 const environment = process.env.ENVIRONMENT || 'dev';
 
 console.log('HOST', process.env.HOST, process.env.ENVIRONMENT);
@@ -244,21 +243,19 @@ mongoose.connect(dbUrl, dbConfig.options)
     const data = {
       _id: ObjectId().toString(),
       name: 'Master',
-      color: '#fff',
       default: true,
       userId
     }
     return data;
   }
 
-  app.post('/api/user', (req, res) => {
+  app.post('/api/user/register', (req, res) => {
     const id = ObjectId();
     req.body._id = id.toString();
     db.collection('user').insertOne(req.body, (err, response) => {
       if (err) {
         return res.status(500).send(err);
       }
-      console.log(response);
       // create master watchlist for the user
       const userId = response.insertedId;
       const masterWatchlistData = getMasterWatchlistData(userId);
@@ -267,11 +264,18 @@ mongoose.connect(dbUrl, dbConfig.options)
           // do a roll back for user registration
           return res.status(500).send(err);
         }
-        console.log(response);
         // create master watchlist for the user
         res.status(200).send({data: { message: 'User registered successfully.' }});
       });
+    });
+  });
 
+  app.get('/api/user', (req, res) => {
+    db.collection('user').find({}).toArray((err, response) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send({data: response});
     });
   });
 
@@ -279,7 +283,8 @@ mongoose.connect(dbUrl, dbConfig.options)
     if (!req.params._id) {
       return res.status(500).send({message: 'User id not found'});
     }
-    db.collection('user').findOne({_id: req.params._id}).then((err, data) => {
+    const userId = req.params._id;
+    db.collection('user').find({_id: userId}).then((err, data) => {
       if (err) {
         return res.status(500).send(err);
       }
@@ -289,7 +294,6 @@ mongoose.connect(dbUrl, dbConfig.options)
 
   app.post('/api/watchlist', (req, res) => {
     req.body._id = ObjectId().toString();
-    req.body.userId = userId;
     db.collection('watchlist').insertOne(req.body, (err, response) => {
       if (err) {
         return res.status(500).send(err);
@@ -298,8 +302,8 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
-  app.get('/api/watchlist', (req, res) => {
-    const query = {userId};
+  app.get('/api/watchlist/:userId', (req, res) => {
+    const query = {userId: req.params.userId};
     db.collection('watchlist').find(query).toArray((err, data) => {
       if (err) {
         return res.status(500).send(err);
@@ -308,8 +312,9 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
-  app.put('/api/watchlist/:_id', (req, res) => {
-    db.collection('watchlist').updateOne({_id: req.params._id}, {$set: req.body}, (err, data) => {
+  app.put('/api/watchlist/:watchlistId', (req, res) => {
+    const watchlistId = req.params.watchlistId;
+    db.collection('watchlist').updateOne({_id: watchlistId}, {$set: req.body}, (err, data) => {
       if (err) {
         return res.status(500).send(err);
       }
@@ -317,12 +322,14 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
-  app.put('/api/watchlist/active/:_id', (req, res) => {
+  app.put('/api/watchlist/active/:watchlistId', (req, res) => {
+    const userId = req.body.userId;
+    const watchlistId = req.params.watchlistId;
     db.collection('watchlist').updateOne({userId, active: true}, {$set: {active: false}}, (err) => {
       if (err) {
         return res.status(500).send(err);
       }
-      db.collection('watchlist').updateOne({userId, _id: req.params._id}, {$set: {active: true}}, (err, data) => {
+      db.collection('watchlist').updateOne({userId, _id: watchlistId}, {$set: {active: true}}, (err, data) => {
         if (err) {
           return res.status(500).send(err);
         }
@@ -331,8 +338,9 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
-  app.delete('/api/watchlist/:_id', (req, res) => {
-    db.collection('watchlist').deleteOne({_id: req.params._id}, (err, response) => {
+  app.delete('/api/watchlist/:watchlistId', (req, res) => {
+    const watchlistId = req.params.watchlistId;
+    db.collection('watchlist').deleteOne({_id: watchlistId}, (err, response) => {
       if (err) {
         res.error(err);
       }
@@ -342,7 +350,6 @@ mongoose.connect(dbUrl, dbConfig.options)
 
   app.post('/api/company', (req, res) => {
     req.body._id = ObjectId().toString();
-    req.body.userId = userId;
     db.collection('company_list').insertOne(req.body, (err, data) => {
       if (err) {
         return res.status(500).send(err);
@@ -351,8 +358,9 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
-  app.put('/api/company/:_id', (req, res) => {
-    db.collection('company_list').updateOne({_id: req.params._id}, {$set: req.body}, (err, data) => {
+  app.put('/api/company/:companyId', (req, res) => {
+    const companyId = req.params.companyId;
+    db.collection('company_list').updateOne({_id: companyId}, {$set: req.body}, (err, data) => {
       if (err) {
         return res.status(500).send(err);
       }
@@ -360,8 +368,9 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
-  app.delete('/api/company/:_id', (req, res) => {
-    db.collection('company_list').deleteOne({_id: req.params._id}, (err, response) => {
+  app.delete('/api/company/:companyId', (req, res) => {
+    const companyId = req.params.companyId;
+    db.collection('company_list').deleteOne({_id: companyId}, (err, response) => {
       if (err) {
         res.error(err);
       }
@@ -369,9 +378,11 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
-  app.get('/api/company/watchlist/:watchlistId', (req, res) => {
-    const query = { userId };
-    if (req.params.watchlistId !== '0') {
+  app.get('/api/company/watchlist/:watchlistId/:userId', (req, res) => {
+    const query = {};
+    if (req.params.watchlistId === '0') {
+      query.userId = req.params.userId;
+    } else {
       query.watchlistId = req.params.watchlistId;
     }
     db.collection('company_list').find(query).toArray((err, data) => {
@@ -390,5 +401,3 @@ mongoose.connect(dbUrl, dbConfig.options)
   //     res.status(200).send({data});
   //   });
   // });
-
-  

@@ -27,6 +27,7 @@ import WatchlistToggler from './common/components/WatchlistToggler';
 import Company from './company';
 import Watchlist from './watchlist';
 // import Comparision from './comparision';
+import User from './user';
 import Loader from './common/components/loader';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
@@ -51,6 +52,7 @@ function App({ common }) {
           <Route path="/company" component={Company} />
           <Route path="/watchlist" component={Watchlist} />
           {/* <Route path="/comparision" component={Comparision} /> */}
+          <Route path="/user" component={User} />
         </div>
       </BrowserRouter>
     </div>
