@@ -15,5 +15,5 @@ export const durationOptions = [
   {id: 1800, label: 'Max'}
 ];
 
-export const baseUrl = 'http://localhost:8080';
-// export const baseUrl = '';
+// export const baseUrl = 'http://localhost:8080';
+export const baseUrl = '';
