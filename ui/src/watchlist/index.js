@@ -2,7 +2,7 @@ import './watchlist.scss'
 import React from 'react';
 import _ from 'lodash';
 import { connect } from 'react-redux';
-import { getWatchlistData, setCompareList, updataWatchlistData, getActiveWatchlistData } from './actions';
+import { getWatchlistData, setCompareList, getActiveWatchlistData } from './actions';
 import { getComparisionListData } from '../comparision/action';
 import { setError, getAllWatchlists, removeCompany, moveCompany } from '../common/actions/commonActions';
 import Form from 'react-bootstrap/Form';
@@ -10,8 +10,7 @@ import Form from 'react-bootstrap/Form';
 import WatchlistRow from './components/watchlistRow';
 import ChartRender from '../components/BasicChart'
 import '../common/styles/watchlist.css';
-import {calculateGrowthScore, calculatePriceChange, calculateAveragePriceChange,
-    setActiveWatchlistData, setStorageData, getStorageData, weeksArray, weeksArrayMapper} from '../common/util'
+import {calculateGrowthScore, calculateAveragePriceChange, weeksArray, weeksArrayMapper} from '../common/util'
 
 // var ref = window.firebase.database().ref();
 
@@ -63,7 +62,7 @@ class Watchlist extends React.Component {
             const watchlistData = [];
             const growthScoreArr = [];
             this.props.getComparisionListData(companyList, (compareListData) => {
-                const earningData = [];
+                // const earningData = [];
                 companyList.forEach((data, index) => {
                     const compareListDataItem = compareListData[index];
                     const processedData = []
@@ -73,7 +72,7 @@ class Watchlist extends React.Component {
                         const profit = Number(compareListDataItem.profit[index]);
                         processedData.push({ date, revenue, profit });
                     }
-                    earningData.push(processedData);
+                    // earningData.push(processedData);
                     growthScoreArr.push(calculateGrowthScore(processedData));
                 });
                 companyList.forEach((element, index) => {
@@ -215,6 +214,7 @@ class Watchlist extends React.Component {
         const companyList = this.state.companyList;
         const matchingIndexInWatchlist = companyList.findIndex(item => item.name === removedItemFromWatchlistData.name);
         const removedItemFromWatchlist = companyList.splice(matchingIndexInWatchlist, 1)[0];
+        console.log(removedItemFromWatchlist);
         this.setState({
             companyList,
             watchlistData,
@@ -284,7 +284,13 @@ class Watchlist extends React.Component {
         if (!sortOrder) {
             watchlistData.reverse();    
         }
-        this.setState({watchlistData, sortBy: param, sortOrder });
+        // arrange companyList in same order
+        const companyList = [];
+        watchlistData.forEach(item => {
+            const match = this.state.companyList.find(company => company.companyId === item.companyId);
+            companyList.push(match);
+        })
+        this.setState({watchlistData, companyList, sortBy: param, sortOrder });
     }
 
     renderHeaders = (averagePriceChange) => {
@@ -336,8 +342,6 @@ class Watchlist extends React.Component {
                     renderChart={this.renderChart}
                     removeStock={this.removeStock}
                     moveStock={(targetWatchlistIndex) => this.moveStock(index, targetWatchlistIndex)}
-                    // companyList={companyList}
-                    // watchlistData={watchlistData}
                     priceChangeRange={priceChangeRange}
                 />
             );
