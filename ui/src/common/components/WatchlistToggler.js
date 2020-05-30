@@ -37,7 +37,7 @@ class WatchlistToggler extends React.PureComponent {
 
   deleteWatchlist = (e, watchlist) => {
     e.stopPropagation();
-    const confirm = window.confirm(`Please confirm that you want to delete ${watchlist.name} watchlist`);
+    const confirm = window.confirm(`Please confirm that you want to delete ${watchlist.name} watchlist. All stocks in the watchlist will also get deleted.`);
     if (confirm) {
       this.props.deleteWatchlist(watchlist._id);
     }
@@ -54,16 +54,18 @@ class WatchlistToggler extends React.PureComponent {
           <button className="custom-button" onClick={this.toggleWatchlistContainer}>Watchlist: <b>{activeWatchlistName}</b></button>
           {this.state.toggleWatchlistContainer && 
             <div className="listContainer">
-              {watchlistData.map((item, index) => {
-                  const customStyle = item._id === activeWatchlist._id ? {fontWeight: 800 } : {} ; 
-                  return(
-                    <li key={index} onClick={() => this.selectWatchlist(item)} style={customStyle}>
-                      <span>{item.name}</span>
-                      <button disabled={item.default} className="pull-right" onClick={(e) => this.deleteWatchlist(e, item)}>&times;</button>
-                    </li>
-                  );
-              })}
-              <li><button style={{background: '#aaa', color: 'white'}} className="custom-button" onClick={this.addWatchlist}>Add new list</button></li>
+              <ul style={{paddingLeft: '20px'}}>
+                {watchlistData.map((item, index) => {
+                    const customStyle = item._id === activeWatchlist._id ? {fontWeight: 800 } : {} ; 
+                    return(
+                      <li key={index} onClick={() => this.selectWatchlist(item)} style={customStyle}>
+                        <span>{item.name}</span>
+                        <button disabled={item.default} className="pull-right" onClick={(e) => this.deleteWatchlist(e, item)}>&times;</button>
+                      </li>
+                    );
+                })}
+              </ul>
+              <button style={{width: '100%', fontSize: '14px'}} className="btn btn-primary" onClick={this.addWatchlist}>Add new list</button>
             </div>
           }
           {this.state.addFlow &&

@@ -15,6 +15,7 @@ export const selectWatchlist = (watchlist) => {
     return async(dispatch, getState) => {
         try {
             const userId = getUserId(getState);
+            dispatch({ type: 'SHOW_LOADER' });
             await axios.put(`${baseUrl}/api/watchlist/active/${watchlist._id}`, {userId});
             dispatch({ type: 'HIDE_LOADER' });
             dispatch({ type: 'ACTIVE_WATCHLIST_CHANGED', data: watchlist });

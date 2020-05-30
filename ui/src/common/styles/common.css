@@ -7,7 +7,7 @@
 }
 
 .loader-container {
-    position: absolute;
+    position: fixed;
     z-index: 999;
     opacity: .5;
     width: 100%;

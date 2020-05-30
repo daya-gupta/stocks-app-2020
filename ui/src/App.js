@@ -41,7 +41,7 @@ import { BrowserRouter, Route } from 'react-router-dom';
 function App({ common }) {
   return (
     <div className="App">
-      {common.showLoader && <Loader />} 
+      <Loader show={common.showLoader} />
       <BrowserRouter>
         <WatchlistToggler />
         <Navigation />
