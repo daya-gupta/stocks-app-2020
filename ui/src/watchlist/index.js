@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { connect } from 'react-redux';
 import { getWatchlistData, setCompareList, getActiveWatchlistData } from './actions';
 import { getComparisionListData } from '../comparision/action';
-import { setError, getAllWatchlists, removeCompany, moveCompany } from '../common/actions/commonActions';
+import { setError, getAllWatchlists, removeCompany, moveCompany, getBseReturn } from '../common/actions/commonActions';
 import Form from 'react-bootstrap/Form';
 // import { Link } from 'react-router-dom';
 import WatchlistRow from './components/watchlistRow';
@@ -12,15 +12,7 @@ import ChartRender from '../components/BasicChart'
 import '../common/styles/watchlist.css';
 import {calculateGrowthScore, calculateAveragePriceChange, weeksArray, weeksArrayMapper} from '../common/util'
 
-// var ref = window.firebase.database().ref();
-
-// ref.on("value", function(snapshot) {
-//    console.log(snapshot.val());
-// }, function (error) {
-//    console.log("Error: " + error.code);
-// });
-
-class Watchlist extends React.Component {
+class Watchlist extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
@@ -30,6 +22,9 @@ class Watchlist extends React.Component {
     }
 
     componentDidMount() {
+        getBseReturn((bseReturn) => {
+            this.setState({bseReturn});
+        });
         let activeWatchlist = this.props.activeWatchlist;
         if (activeWatchlist) {
             this.initalizeWatchlist(activeWatchlist);
@@ -202,19 +197,17 @@ class Watchlist extends React.Component {
     // }
 
     removeStock = (index) => {
-        const companyId = this.state.watchlistData[index]._id;
+        const companyId = this.state.companyList[index]._id;
         this.props.removeCompany(companyId, () => {
             this.removeCompanyAndUpdateWatchlist(index)
         });
     }
 
     removeCompanyAndUpdateWatchlist = (index) => {
-        const watchlistData = [...this.state.watchlistData];
-        const removedItemFromWatchlistData = watchlistData.splice(index, 1)[0];
+        const watchlistData = this.state.watchlistData;
+        watchlistData.splice(index, 1);
         const companyList = this.state.companyList;
-        const matchingIndexInWatchlist = companyList.findIndex(item => item.name === removedItemFromWatchlistData.name);
-        const removedItemFromWatchlist = companyList.splice(matchingIndexInWatchlist, 1)[0];
-        console.log(removedItemFromWatchlist);
+        companyList.splice(index, 1);
         this.setState({
             companyList,
             watchlistData,
@@ -222,22 +215,24 @@ class Watchlist extends React.Component {
         });
     }
 
-    moveStock = (stockIndex, watchlistIndex) => {
-        const watchlistData = [...this.state.watchlistData];
+    moveStock = (stockIndex, targetWatchlistId) => {
+        const watchlistData = this.state.watchlistData;
         const companyInWatchlistData = watchlistData[stockIndex];
         const companyList = this.state.companyList;
         const matchingIndexInWatchlist = companyList.findIndex(item => item.companyId === companyInWatchlistData.companyId);
         const company = companyList[matchingIndexInWatchlist];
-        this.props.moveCompany(company._id, watchlistIndex, (success) => {
+        this.props.moveCompany(company._id, targetWatchlistId, (success) => {
+            // console.time();
             if (success) {
-                const message = 'Item moved/copied successfully!!';
-                const error = { message };
-                this.props.setError(error);
-                // if origin is master watchlist - do a copy instead
+                // update watchlistId
+                company.watchlistId = targetWatchlistId;
+                this.setState({companyList});
+                // if origin is master watchlist - do not remove from list
                 if (!this.props.activeWatchlist.default) {
                     this.removeCompanyAndUpdateWatchlist(stockIndex);
                 }
             }
+            console.timeEnd();
         })
     }
 
@@ -261,12 +256,13 @@ class Watchlist extends React.Component {
     }
 
     sortBy = (param, numericSort) => {
+        console.time();
         const {watchlistData, sortBy} = this.state;
         let sortOrder = this.state.sortOrder;
         if (sortBy === param) {
             sortOrder = !sortOrder;
         } else {
-            sortOrder = true;
+            sortOrder = false;
         }
         watchlistData.sort((a, b) => {
             if (param.indexOf('priceChange') !== -1) {
@@ -281,9 +277,13 @@ class Watchlist extends React.Component {
                 return (a[param] || '').toLowerCase() > (b[param] || '').toLowerCase() ? 1 : -1;
             }
         });
+        console.timeEnd();
+        console.time();
         if (!sortOrder) {
             watchlistData.reverse();    
         }
+        console.timeEnd();
+        console.time();
         // arrange companyList in same order
         const companyList = [];
         watchlistData.forEach(item => {
@@ -291,6 +291,7 @@ class Watchlist extends React.Component {
             companyList.push(match);
         })
         this.setState({watchlistData, companyList, sortBy: param, sortOrder });
+        console.timeEnd();
     }
 
     renderHeaders = (averagePriceChange) => {
@@ -299,17 +300,24 @@ class Watchlist extends React.Component {
         return arr.map((value, valueIndex) => {
             if (!value || !valueIndex) { return null; }
             const label = weeksArrayMapper[counter++].label;
+            const bseReturn = (this.state.bseReturn || {})[label] || 'NA';
             return (
                 <th key={value}>
-                    <div onClick={() => this.sortBy(`priceChange.${valueIndex}`, true)}>{label} {value} %</div>
+                    <div onClick={() => this.sortBy(`priceChange.${valueIndex}`, true)}>
+                        <span>{label}</span>
+                        <br />
+                        <span>{value}%</span>
+                        <br />
+                        <span>[{bseReturn}%]</span>
+                    </div>
                 </th>
             );
         });
     }
     
-    updateCompany = (index, data) => {
-        const companyList = this.state.companyList;
-        companyList[index] = {...companyList[index], ...data};
+    updateCompany = (index, key, value) => {
+        const companyList = [...this.state.companyList];
+        companyList[index] = {...companyList[index], [key]: value};
         this.setState({companyList});
     }
 
@@ -337,11 +345,11 @@ class Watchlist extends React.Component {
                     index={index}
                     item={item}
                     company={companyList[index]}
-                    updateCompany={(data) => this.updateCompany(index, data)}
+                    updateCompany={(key, value) => this.updateCompany(index, key, value)}
                     handleCheckboxChange={(e) => this.handleCheckboxChange(e, index)}
                     renderChart={this.renderChart}
                     removeStock={this.removeStock}
-                    moveStock={(targetWatchlistIndex) => this.moveStock(index, targetWatchlistIndex)}
+                    moveStock={(targetWatchlistId) => this.moveStock(index, targetWatchlistId)}
                     priceChangeRange={priceChangeRange}
                 />
             );

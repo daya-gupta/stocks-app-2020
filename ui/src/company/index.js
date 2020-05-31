@@ -82,6 +82,12 @@ class Company extends Component {
     addToWatchlist = () => {
         const selectedCompany = this.state.selectedCompany;
         selectedCompany.watchlistId = this.props.common.activeWatchlist._id;
+        if (this.props.common.activeWatchlist.name === 'Master') {
+            // when master watchlist is active - add to primary watchlist
+            const watchlists = this.props.common.watchlistData || [];
+            const defaultWatchlist = watchlists.find(item => item.default);
+            selectedCompany.watchlistId = defaultWatchlist._id;
+        }
         const error = { message: '' };
         this.props.addCompany(selectedCompany, (res, err) => {
             if (err) {

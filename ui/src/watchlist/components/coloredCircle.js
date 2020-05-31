@@ -20,7 +20,7 @@ class ColoredCircle extends React.PureComponent {
     updateColor = (_id, color) => {
         this.props.updateColor(_id, color, () => {
             this.setState({ showOptions: false });
-            this.props.updateCompany({color});
+            this.props.updateCompany('color', color);
         });
     }
 
@@ -28,13 +28,14 @@ class ColoredCircle extends React.PureComponent {
         const comment = this.textarea.value || '';
         this.props.updateComment(company._id, comment, () => {
             this.setState({ showComment: false });
-            this.props.updateCompany({comment});
+            this.props.updateCompany('comment', comment);
         });
     }
 
-    moveStock = (index) => {
+    moveStock = (targetWatchlist) => {
+        console.time();
+        this.props.moveStock(targetWatchlist);
         this.toggleOptions();
-        this.props.moveStock(index);
     }
   
     render = () => {
@@ -71,8 +72,11 @@ class ColoredCircle extends React.PureComponent {
                     <hr />
                     <b>Move to:</b>
                     {watchlistData.map((item, index) => {
+                        const disabled = item.name === 'Master' || item._id === company.watchlistId;
                         return (
-                            <li key={index} className="moveOptions" onClick={() => this.moveStock(index)}>{item.name}</li>
+                            <li key={index} className="moveOptions" onClick={() => this.moveStock(item._id)}>
+                                <button disabled={disabled} className="custom-button">{item.name}</button>
+                            </li>
                         );
                     })}
                 </div>}

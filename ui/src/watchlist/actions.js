@@ -1,5 +1,6 @@
 import axios from 'axios';
 import {baseUrl} from '../common/constants';
+// import { getAllWatchlists } from '../common/actions/commonActions';
 
 // const duration = 366;
 const duration = 1850;
@@ -44,8 +45,9 @@ export const updataWatchlistData = (data) => {
 }
 
 export const getActiveWatchlistData = (watchlist) => {
-    return async (dispatch, getState) => {
-        const watchlistId = watchlist.default ? 0 : watchlist._id;
+    return async (dispatch) => {
+        // for master watchlist - get data from all the watchlists
+        const watchlistId = watchlist.name === 'Master' ? 0 : watchlist._id;
         const userId = watchlist.userId;
         dispatch({ type: 'SHOW_LOADER' });
         const companies = await axios.get(`${baseUrl}/api/company/watchlist/${watchlistId}/${userId}`);

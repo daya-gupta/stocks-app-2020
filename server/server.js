@@ -240,11 +240,11 @@ mongoose.connect(dbUrl, dbConfig.options)
     }); 
   });
 
-  const getMasterWatchlistData = (userId) => {
+  const getWatchlistData = (userId, name) => {
     const data = {
       _id: ObjectId().toString(),
-      name: 'Master',
-      default: true,
+      name,
+      default: name === 'Primary',
       userId
     }
     return data;
@@ -259,8 +259,9 @@ mongoose.connect(dbUrl, dbConfig.options)
       }
       // create master watchlist for the user
       const userId = response.insertedId;
-      const masterWatchlistData = getMasterWatchlistData(userId);
-      db.collection('watchlist').insertOne(masterWatchlistData, (err, response) => {
+      const masterWatchlistData = getWatchlistData(userId, 'Master');
+      const primaryWatchlistData = getWatchlistData(userId, 'Primary');
+      db.collection('watchlist').insertMany([masterWatchlistData, primaryWatchlistData], (err, response) => {
         if (err) {
           // do a roll back for user registration
           return res.status(500).send(err);

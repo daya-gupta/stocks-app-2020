@@ -1,4 +1,4 @@
-import { setStorageData, getStorageData, getUserId } from "../util";
+import {getUserId} from "../util";
 import axios from 'axios';
 import {baseUrl} from '../constants';
 
@@ -77,14 +77,16 @@ export const removeCompany = (companyId, callback) => {
     }
 }
 
-export const moveCompany = (companyId, watchlistIndex, callback) => {
-    return async(dispatch, getState) => {
-        const targetWatchlist = getState().common.watchlistData[watchlistIndex];
+export const moveCompany = (companyId, targetWatchlistId, callback) => {
+    return async(dispatch) => {
         dispatch({ type: 'SHOW_LOADER' });
+        console.timeEnd();
         // const promise = axios.put(`${baseUrl}/api/company/${company._id}`, {comment: company.comment});
         try {
-            await axios.put(`${baseUrl}/api/company/${companyId}`, {watchlistId: targetWatchlist._id});
+            await axios.put(`${baseUrl}/api/company/${companyId}`, {watchlistId: targetWatchlistId});
+            console.time();
             dispatch({ type: 'HIDE_LOADER' });
+            dispatch(setError({ message: 'Item moved successfully!!' }));
             callback && callback(true);
         } catch (e) {
             dispatch({ type: 'HIDE_LOADER' });
@@ -138,6 +140,15 @@ export const getAllUsers = () => {
             }
         });
     };
+}
+
+export const getBseReturn = (callback) => {
+    const promise = axios.get(`${baseUrl}/api/bseReturn`);
+    promise.then(res => {
+        const data = res.data.data;
+        const bseReturn = (data.find(item => item.name === 'BSE 500')).returns;
+        callback(bseReturn);
+    });
 }
 
 export const changeUser = (user) => {

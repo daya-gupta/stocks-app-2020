@@ -90,6 +90,7 @@ export const addCompany = (selectedCompany, callback) => {
         dispatch({ type: 'SHOW_LOADER' });
         axios.post(`${baseUrl}/api/company`, selectedCompany).then((res, error) => {
             dispatch({ type: 'HIDE_LOADER' });
+            dispatch({type: 'SET_ERROR', data: {message: 'Item added successfully!!'}});
             callback(res, error);
         })
     }
