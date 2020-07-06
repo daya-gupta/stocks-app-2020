@@ -12,6 +12,10 @@ import ChartRender from '../components/BasicChart'
 import '../common/styles/watchlist.css';
 import {calculateGrowthScore, calculateAveragePriceChange, weeksArray, weeksArrayMapper} from '../common/util'
 
+const localData = {
+    showOverallReturn: false
+}
+
 class Watchlist extends React.PureComponent {
     constructor(props) {
         super(props);
@@ -143,58 +147,59 @@ class Watchlist extends React.PureComponent {
         return averagePriceChange;
     }
 
-    // handleCheckboxChange = (event, index) => {
-    //     const { watchlistData, companyList } = this.state;
-    //     const watchlistDataItem = watchlistData[index];
-    //     if (typeof(index) === 'undefined') {
-    //         // master
-    //         for (let item of companyList) {
-    //             item.checked = event.target.checked;
-    //         }
-    //         for (let item of watchlistData) {
-    //             item.checked = event.target.checked;
-    //         }
-    //     } else {
-    //         const checked = event.target.checked;
-    //         const matchingIndexInWatchlist = companyList.findIndex(item => item.name === watchlistDataItem.name);
-    //         const watchlistItem = companyList[matchingIndexInWatchlist];
-    //         watchlistItem.checked = checked;
-    //         watchlistDataItem.checked = checked;
-    //     }
-    //     setActiveWatchlistData(watchlist);
-    //     this.setState({ watchlist, watchlistData });
-    // }
+    handleCheckboxChange = (event, index) => {
+        const { watchlistData } = this.state;
+        const checked = event.target.checked;
+        // const watchlistDataItem = watchlistData[index];
+        if (typeof(index) === 'undefined') {
+            // master
+            for (let item of watchlistData) {
+                item.checked = checked;
+            }
+        } else {
+            watchlistData[index].checked = checked;
+            // const matchingIndexInWatchlist = companyList.findIndex(item => item.name === watchlistDataItem.name);
+            // const watchlistItem = companyList[matchingIndexInWatchlist];
+            // watchlistItem.checked = checked;
+            // watchlistDataItem.checked = checked;
+        }
+        // setActiveWatchlistData(watchlist);
+        this.setState({ watchlistData });
+    }
 
-    // compare = (param) => {
-    //     if (!param) {
-    //         const { watchlist, watchlistData } = this.localData;
-    //         this.setState({
-    //             watchlist,
-    //             watchlistData,
-    //             averagePriceChange: this.getAveragePriceChange(watchlistData),
-    //             compare: false 
-    //         });
-    //         this.localData = {};
-    //         return;
-    //     }
-    //     const { watchlistData, watchlist } = this.state;
-    //     const newWatchlistData = watchlistData.filter(item => item.checked);
-    //     const newWatchlist = {...watchlist, companies: []};
-    //     for (let item of newWatchlistData) {
-    //         const matchingIndexInWatchlist = watchlist.companies.findIndex(item2 => item2.name === item.name);
-    //         newWatchlist.companies.push(watchlist.companies[matchingIndexInWatchlist]);
-    //     }
-    //     this.localData = {
-    //         watchlist,
-    //         watchlistData
-    //     };
-    //     this.setState({
-    //         watchlist: newWatchlist,
-    //         watchlistData: newWatchlistData,
-    //         averagePriceChange: this.getAveragePriceChange(newWatchlistData),
-    //         compare: true
-    //     });
-    // }
+    compare = (param) => {
+        this.setState({
+            compare: param
+        });
+        // if (!param) {
+        //     const { watchlist, watchlistData } = this.localData;
+        //     this.setState({
+        //         watchlist,
+        //         watchlistData,
+        //         averagePriceChange: this.getAveragePriceChange(watchlistData),
+        //         compare: false 
+        //     });
+        //     this.localData = {};
+        //     return;
+        // }
+        // const { watchlistData, watchlist } = this.state;
+        // const newWatchlistData = watchlistData.filter(item => item.checked);
+        // const newWatchlist = {...watchlist, companies: []};
+        // for (let item of newWatchlistData) {
+        //     const matchingIndexInWatchlist = watchlist.companies.findIndex(item2 => item2.name === item.name);
+        //     newWatchlist.companies.push(watchlist.companies[matchingIndexInWatchlist]);
+        // }
+        // this.localData = {
+        //     watchlist,
+        //     watchlistData
+        // };
+        // this.setState({
+        //     watchlist: newWatchlist,
+        //     watchlistData: newWatchlistData,
+        //     averagePriceChange: this.getAveragePriceChange(newWatchlistData),
+        //     compare: true
+        // });
+    }
 
     removeStock = (index) => {
         const companyId = this.state.companyList[index]._id;
@@ -295,10 +300,11 @@ class Watchlist extends React.PureComponent {
     }
 
     renderHeaders = (averagePriceChange) => {
-        let counter = 1;
+        let counter = 0;
         const arr = this.state.chartWidth ? averagePriceChange.slice(0, 14) : averagePriceChange;
         return arr.map((value, valueIndex) => {
-            if (!value || !valueIndex) { return null; }
+            // if (!value || !valueIndex) { return null; }
+            if (!value) { return null; }
             const label = weeksArrayMapper[counter++].label;
             const bseReturn = (this.state.bseReturn || {})[label] || 'NA';
             return (
@@ -306,9 +312,11 @@ class Watchlist extends React.PureComponent {
                     <div onClick={() => this.sortBy(`priceChange.${valueIndex}`, true)}>
                         <span>{label}</span>
                         <br />
-                        <span>{value}%</span>
-                        <br />
-                        <span>[{bseReturn}%]</span>
+                        {localData.showOverallReturn && <span>
+                            <span>{value}%</span>
+                            <br />
+                            <span>[{bseReturn}%]</span>
+                        </span>}
                     </div>
                 </th>
             );
@@ -326,7 +334,7 @@ class Watchlist extends React.PureComponent {
         if( !companyList || !watchlistData || !watchlistData.length ) {
             return null;
         }
-        const masterChecked = companyList.findIndex(item => !item.checked) === -1 ? true : false;
+        const masterCheckboxValue = watchlistData.find(item => !item.checked) ? false : true;
         const priceChangeRange = [];
         for (const w of weeksArr) {
             const priceChangeArr = watchlistData.map(item => Number(item.priceChange[w]));
@@ -337,6 +345,9 @@ class Watchlist extends React.PureComponent {
         watchlistData.map(item => item.priceChange)
     
         const html = watchlistData.map((item, index) => {
+            if (this.state.compare && !item.checked) {
+                return null;
+            }
             return (
                 <WatchlistRow
                     key={item.name}
@@ -359,15 +370,12 @@ class Watchlist extends React.PureComponent {
                 <thead>
                     <tr>
                         <th>
-                            <Form.Check type='checkbox' checked={masterChecked} onChange={this.handleCheckboxChange} />    
+                            <Form.Check type='checkbox' checked={masterCheckboxValue} onChange={this.handleCheckboxChange} />    
                         </th>
                         <th><span onClick={() => this.sortBy('color')}>Color</span></th>
                         <th><span onClick={() => this.sortBy('score', true)}>Score</span></th>
                         <th style={{width: '20%'}}>
                             <span onClick={() => this.sortBy('name')}>Company</span>
-                        </th>
-                        <th>
-                            <span onClick={() => this.sortBy('priceChange.0', true)}>Price <small>({averagePriceChange[0]}% change)</small></span>
                         </th>
                         {this.renderHeaders(averagePriceChange)}
                         {/* <th>Volume <small>(%change)</small></th> */}

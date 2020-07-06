@@ -71,8 +71,26 @@ app.get('/searchCompany', (req, res) => {
   }).on("error", (err) => {
       console.log("Error: " + err.message);
   });
-})
+});
 
+app.get('/api/bseReturn', (req, res) => {
+  // const data = req.query.data;
+  const url = 'https://www.bloombergquint.com/feapi/markets/indices/historical-returns?tab=bse';
+  https.get(url, (resp) => {
+      let data = '';
+
+      resp.on('data', (chunk) => {
+          data += chunk;
+      });
+
+      resp.on('end', () => {
+          res.send(JSON.parse(data));
+      });
+
+  }).on("error", (err) => {
+      console.log("Error: " + err.message);
+  });
+})
 
 app.get('/historicalData', (req, res) => {
   const companyId = req.query.companyId;
