@@ -275,11 +275,12 @@ mongoose.connect(dbUrl, dbConfig.options)
       if (err) {
         return res.status(500).send(err);
       }
-      // create master watchlist for the user
+      // create watchlists (master, primary, negative) for the user
       const userId = response.insertedId;
       const masterWatchlistData = getWatchlistData(userId, 'Master');
       const primaryWatchlistData = getWatchlistData(userId, 'Primary');
-      db.collection('watchlist').insertMany([masterWatchlistData, primaryWatchlistData], (err, response) => {
+      const negativeWatchlistData = getWatchlistData(userId, 'Negative');
+      db.collection('watchlist').insertMany([masterWatchlistData, primaryWatchlistData, negativeWatchlistData], (err, response) => {
         if (err) {
           // do a roll back for user registration
           return res.status(500).send(err);
@@ -399,18 +400,39 @@ mongoose.connect(dbUrl, dbConfig.options)
   });
 
   app.get('/api/company/watchlist/:watchlistId/:userId', (req, res) => {
-    const query = {};
     if (req.params.watchlistId === '0') {
-      query.userId = req.params.userId;
+      // query.userId = req.params.userId;
+      let query = {userId: req.params.userId};
+      db.collection('watchlist').find(query).toArray((err, data) => {
+        if (err) {
+          return res.status(500).send(err);
+        }
+        const negativeWatchlist = data.find((item) => item.name === 'Negative');
+        if (negativeWatchlist) {
+          query = {
+            $and: [
+              { userId: req.params.userId },
+              { watchlistId: { $ne: negativeWatchlist._id } }
+            ]
+          };
+        }
+        db.collection('company_list').find(query).toArray((err, data) => {
+          if (err) {
+            return res.status(500).send(err);
+          }
+          res.status(200).send(data);
+        });
+      });  
     } else {
+      const query = {};
       query.watchlistId = req.params.watchlistId;
+      db.collection('company_list').find(query).toArray((err, data) => {
+        if (err) {
+          return res.status(500).send(err);
+        }
+        res.status(200).send(data);
+      });
     }
-    db.collection('company_list').find(query).toArray((err, data) => {
-      if (err) {
-        return res.status(500).send(err);
-      }
-      res.status(200).send(data);
-    });
   });
   
   // app.get('/api/company/:_id', (req, res) => {

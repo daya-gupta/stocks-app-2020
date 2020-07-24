@@ -60,7 +60,7 @@ class WatchlistToggler extends React.PureComponent {
                     return(
                       <li key={index} onClick={() => this.selectWatchlist(item)} style={customStyle}>
                         <span>{item.name}</span>
-                        <button disabled={item.default || item.name==='Master'} className="pull-right" onClick={(e) => this.deleteWatchlist(e, item)}>&times;</button>
+                        <button disabled={item.default || item.name==='Master' || item.name==='Negative'} className="pull-right" onClick={(e) => this.deleteWatchlist(e, item)}>&times;</button>
                       </li>
                     );
                 })}

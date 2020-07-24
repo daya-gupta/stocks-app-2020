@@ -44,11 +44,15 @@ const commonReducer = (state = initialState, action) => {
             }
         }
         case 'SET_USER_WATCHLIST': {
-            const activeWatchlist = action.data.find(item => item.active) || action.data[0];
+            const watchlistData = action.data || [];
+            // debugger;
+            const defaultWatchlist = watchlistData.find(item => item.default);
+            const activeWatchlist = watchlistData.find(item => item.active) || action.data[0];
             return {
                 ...state,
-                watchlistData: action.data,
-                activeWatchlist 
+                watchlistData,
+                activeWatchlist,
+                defaultWatchlistId: (defaultWatchlist || {})._id,
             }
         }
         case 'ACTIVE_WATCHLIST_CHANGED': {

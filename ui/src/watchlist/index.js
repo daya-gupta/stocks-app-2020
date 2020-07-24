@@ -13,7 +13,7 @@ import '../common/styles/watchlist.css';
 import {calculateGrowthScore, calculateAveragePriceChange, weeksArray, weeksArrayMapper} from '../common/util'
 
 const localData = {
-    showOverallReturn: false
+    showOverallReturn: true
 }
 
 class Watchlist extends React.PureComponent {

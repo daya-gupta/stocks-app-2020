@@ -42,7 +42,13 @@ class ColoredCircle extends React.PureComponent {
         const { showOptions, showComment } = this.state;
         const { company, common } = this.props;
         const watchlistData = common.watchlistData;
-        const {comment, color, name} = company;
+        const {comment, name} = company;
+        let {color} = company;
+        if (company.watchlistId === common.defaultWatchlistId) {
+            color = color || 'blue';
+        } else {
+            color = (color === 'blue') ? '' : color; 
+        }
         const className = `coloredCircle ${color}`;
         return (
             <React.Fragment>
