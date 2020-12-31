@@ -45,7 +45,6 @@ const commonReducer = (state = initialState, action) => {
         }
         case 'SET_USER_WATCHLIST': {
             const watchlistData = action.data || [];
-            // debugger;
             const defaultWatchlist = watchlistData.find(item => item.default);
             const activeWatchlist = watchlistData.find(item => item.active) || action.data[0];
             return {

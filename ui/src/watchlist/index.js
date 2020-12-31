@@ -114,8 +114,25 @@ class Watchlist extends React.PureComponent {
     }
 
     calculatePriceChange = (prices, noOfWeeks) => {
+        if (noOfWeeks === 500) {
+            const latestPrice = prices[0];
+            let previousPrice = prices[2];
+            let change1 = 'NA';
+            if (previousPrice) {
+                change1 = (latestPrice - previousPrice)/previousPrice;
+                change1 = change1 * 100;
+            }
+            previousPrice = prices[3];
+            let change2 = 'NA';
+            if (previousPrice) {
+                change2 = (latestPrice - previousPrice)/previousPrice;
+                change2 = change2 * 100;
+            }
+            return (change1 + change2).toFixed(2);    
+        }
         // const days = noOfWeeks === 0 ? 1 : noOfWeeks * 5;
         const offset = noOfWeeks ? noOfWeeks + 1 : 1;
+        
         // const latestPrice = prices[prices.length - 1] || 0;
         // const previousPrice = prices[prices.length - 1 - days] || prices[0] || 1;
         const latestPrice = prices[0] || 0;
@@ -302,7 +319,7 @@ class Watchlist extends React.PureComponent {
     renderHeaders = (averagePriceChange) => {
         let counter = 0;
         const arr = this.state.chartWidth ? averagePriceChange.slice(0, 14) : averagePriceChange;
-        return arr.map((value, valueIndex) => {
+        const headers = arr.map((value, valueIndex) => {
             // if (!value || !valueIndex) { return null; }
             if (!value) { return null; }
             const label = weeksArrayMapper[counter++].label;
@@ -321,6 +338,14 @@ class Watchlist extends React.PureComponent {
                 </th>
             );
         });
+        // headers.unshift(
+        //     (<th key='refScoreHeader'>
+        //         <div>
+        //             <span>R Score</span>
+        //         </div>
+        //     </th>)
+        // );
+        return headers;
     }
     
     updateCompany = (index, key, value) => {
@@ -342,7 +367,7 @@ class Watchlist extends React.PureComponent {
             const min = _.min(priceChangeArr);
             priceChangeRange.push([min, max]);
         }
-        watchlistData.map(item => item.priceChange)
+        // watchlistData.map(item => item.priceChange)
     
         const html = watchlistData.map((item, index) => {
             if (this.state.compare && !item.checked) {
