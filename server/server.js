@@ -203,6 +203,36 @@ var companyListSchema = new mongoose.Schema({
 
 mongoose.model('company_list', companyListSchema);
 
+var optionNiftySchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
+  timestamp: {
+    type: Number,
+    required: true,
+  },
+  callTotal: {
+    type: Number,
+    required: true,
+  },
+  putTotal: {
+    type: Number,
+    required: true,
+  },
+  callTotal2: {
+    type: Number,
+    required: true,
+  },
+  putTotal2: {
+    type: Number,
+    required: true,
+  },
+});
+
+mongoose.model('option_nifty', optionNiftySchema);
+mongoose.model('option_bank_nifty', optionNiftySchema);
+
 // Save the new model instance, passing a callback
 // watchlistModel.save(function (err) {
 //   if (err) console.log('schema error');
@@ -230,7 +260,8 @@ const dbConfig = {
 // const prodUrl = 'mongodb://test-cosmos-1:bzRmqiwJi3pLAa7b2V4oA9qBuVd8FNwW2FtmWQi5EtISlo1nmxwd5IQAauWtYlCLM5Fs8UHITtjziFYZ2fkmlQ==@test-cosmos-1.mongo.cosmos.azure.com:10255/?ssl=true&appName=@test-cosmos-1@';
 // const localUrl = `mongodb://${dbConfig.uri}:${dbConfig.port}/${dbConfig.name}`;
 // const dbUrl = process.env.environment === 'production' ? prodUrl : localUrl;
-const dbUrl = process.env.dbUrl;
+// const dbUrl = process.env.dbUrl;
+const dbUrl = 'mongodb+srv://atlas-stocks:123456pP@cluster0.azsog.mongodb.net/stocks';
 console.log(dbUrl, '-----------------');
 let db = null;
 
@@ -399,28 +430,66 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
+  app.get('/api/setOptionData', (req, res) => {
+    const { callTotal, putTotal, callTotal2, putTotal2, timestamp, type } = req.query;
+    const data = {
+      _id: ObjectId().toString(),
+      callTotal,
+      putTotal,
+      callTotal2,
+      putTotal2,
+      timestamp,
+    }
+    // const companyId = req.params.companyId;
+    // res.status(200).send({message: 'works'});
+    let collectionName = 'option_nifty';
+    if (type === 'bank_nifty') {
+      collectionName = 'option_bank_nifty';
+    }
+    // db.collection('option_bank_nifty').insertOne(data, (err, data) => {
+    db.collection(collectionName).insertOne(data, (err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send({data});
+    });
+  });
+
+  app.get('/api/getOptionData', (req, res) => {
+    const { type } = req.query;
+    let collectionName = 'option_nifty';
+    if (type === 'bank_nifty') {
+      collectionName = 'option_bank_nifty';
+    }
+    db.collection(collectionName).find({}).toArray((err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send(data);
+    });
+  });
+
   app.get('/api/company/watchlist/:watchlistId/:userId', (req, res) => {
+    // for master-watchlist show data from primary and smallcap both
     if (req.params.watchlistId === '0') {
-      // query.userId = req.params.userId;
       let query = {userId: req.params.userId};
       db.collection('watchlist').find(query).toArray((err, data) => {
         if (err) {
           return res.status(500).send(err);
         }
-        const negativeWatchlist = data.find((item) => item.name === 'Negative');
-        if (negativeWatchlist) {
-          query = {
-            $and: [
-              { userId: req.params.userId },
-              { watchlistId: { $ne: negativeWatchlist._id } }
-            ]
-          };
-        }
-        db.collection('company_list').find(query).toArray((err, data) => {
-          if (err) {
-            return res.status(500).send(err);
+        const primaryWatchlist = data.find((item) => item.name === 'Primary');
+        const smallcapWatchlist = data.find((item) => item.name === 'Smallcap');
+        query = {
+          $or: [
+            { watchlistId: primaryWatchlist._id },
+            { watchlistId: smallcapWatchlist._id }
+          ]
+        };
+        db.collection('company_list').find(query).toArray((e, d) => {
+          if (e) {
+            return res.status(500).send(e);
           }
-          res.status(200).send(data);
+          res.status(200).send(d);
         });
       });  
     } else {

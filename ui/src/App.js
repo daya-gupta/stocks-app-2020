@@ -26,6 +26,8 @@ import Navigation from './common/components/Navigation';
 import WatchlistToggler from './common/components/WatchlistToggler';
 import Company from './company';
 import Watchlist from './watchlist';
+import OptionData from './optionData';
+import OptionDataTotal from './optionData/optionDataTotal';
 // import Comparision from './comparision';
 import User from './user';
 import Loader from './common/components/loader';
@@ -51,6 +53,8 @@ function App({ common }) {
           <Route exact path="/" component={Company} />
           <Route path="/company" component={Company} />
           <Route path="/watchlist" component={Watchlist} />
+          <Route path="/optionData" component={OptionData} />
+          <Route path="/optionDataTotal" component={OptionDataTotal} />
           {/* <Route path="/comparision" component={Comparision} /> */}
           <Route path="/user" component={User} />
         </div>

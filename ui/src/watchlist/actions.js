@@ -1,11 +1,10 @@
 import axios from 'axios';
 import {baseUrl} from '../common/constants';
-// import { getAllWatchlists } from '../common/actions/commonActions';
 
 // const duration = 366;
 const duration = 1850;
 
-export const getHistoricalData = ({companyId, duration}, callback) => {
+export const getHistoricalData = ({companyId}, callback) => {
     return (dispatch) => {
         dispatch({ type: 'SHOW_LOADER' });
         axios.get(`${baseUrl}/historicalData?companyId=${companyId}&duration=${duration}`).then((res) => {
@@ -15,23 +14,45 @@ export const getHistoricalData = ({companyId, duration}, callback) => {
     }
 }
 
+// export const getWatchlistData = (watchlist, callback) => {
+//     return (dispatch) => {
+//         const promises = [];
+//         watchlist.forEach(element => {
+//             // const companyId = element.id;
+//             const test = axios.get(`${baseUrl}/historicalData?companyId=${element.companyId}&duration=${duration}`);
+//             const test1 = axios.get(`${baseUrl}/historicalData?companyId=${element.companyId}&duration=${7}`);
+//             promises.push(test);
+//             promises.push(test1);
+//         });
+//         dispatch({ type: 'SHOW_LOADER' });
+//         Promise.all(promises).then(([...res]) => {
+//             dispatch({ type: 'HIDE_LOADER' });
+//             callback(res);
+//         });
+//     }
+// }
+
+// making sequential call because of server failure
 export const getWatchlistData = (watchlist, callback) => {
     return (dispatch) => {
-        const promises = [];
-        watchlist.forEach(element => {
-            // const companyId = element.id;
-            const test = axios.get(`${baseUrl}/historicalData?companyId=${element.companyId}&duration=${duration}`);
-            const test1 = axios.get(`${baseUrl}/historicalData?companyId=${element.companyId}&duration=${7}`);
-            promises.push(test);
-            promises.push(test1);
-        });
         dispatch({ type: 'SHOW_LOADER' });
-        Promise.all(promises).then(([...res]) => {
-            dispatch({ type: 'HIDE_LOADER' });
-            callback(res);
+        const promises = [];
+        let counter = 0;
+        watchlist.forEach((element, index) => {
+            setTimeout(async () => {
+                counter++;
+                const test = await axios.get(`${baseUrl}/historicalData?companyId=${element.companyId}&duration=${duration}`);
+                promises.push(test);
+                const test1 = await axios.get(`${baseUrl}/historicalData?companyId=${element.companyId}&duration=${7}`);
+                promises.push(test1);
+                if (counter === watchlist.length) {
+                    dispatch({ type: 'HIDE_LOADER' });
+                    callback(promises);
+                }
+            }, 2000 * index);
         });
     }
-} 
+}
 
 export  const setCheckboxSelectionList = (CheckboxSelectionList)=>{
     return (dispatch)=> dispatch({type:'CHECKBOX_SELECTION_LIST', data : CheckboxSelectionList})

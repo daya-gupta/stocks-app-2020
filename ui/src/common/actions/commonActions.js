@@ -146,7 +146,7 @@ export const getBseReturn = (callback) => {
     const promise = axios.get(`${baseUrl}/api/bseReturn`);
     promise.then(res => {
         const data = res.data.data;
-        const bseReturn = (data.find(item => item.name === 'BSE 500')).returns;
+        const bseReturn = ((data.find(item => item.name === 'BSE 500')) || {}).returns;
         callback(bseReturn);
     });
 }

@@ -85,7 +85,7 @@ export default class WatchlistRow extends React.PureComponent {
                     );
                 })}
               {!chartWidth && <td><RemoveStockBtn className="fa fa-times" onClick={() => removeStock(index)}></RemoveStockBtn></td>}
-              <td>{renderChart(item.historicalData, index)}</td>
+              {/* <td>{renderChart(item.historicalData, index)}</td> */}
           </tr>
       );
   }
