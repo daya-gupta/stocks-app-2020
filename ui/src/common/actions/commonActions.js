@@ -148,6 +148,8 @@ export const getBseReturn = (callback) => {
         const data = res.data.data;
         const bseReturn = ((data.find(item => item.name === 'BSE 500')) || {}).returns;
         callback(bseReturn);
+    }, err => {
+        callback(null);
     });
 }
 

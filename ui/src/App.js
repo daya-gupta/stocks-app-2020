@@ -1,23 +1,3 @@
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
 
 import React from 'react';
 import { connect } from 'react-redux';
@@ -28,6 +8,8 @@ import Company from './company';
 import Watchlist from './watchlist';
 import OptionData from './optionData';
 import OptionDataTotal from './optionData/optionDataTotal';
+import OptionChain from './optionData/optionChain';
+import Test from './test';
 // import Comparision from './comparision';
 import User from './user';
 import Loader from './common/components/loader';
@@ -38,6 +20,7 @@ import './common/styles/common.css';
 import './common/styles/common.scss';
 
 import { BrowserRouter, Route } from 'react-router-dom';
+import Portfolio from './components/Portfolio';
 
 
 function App({ common }) {
@@ -55,6 +38,9 @@ function App({ common }) {
           <Route path="/watchlist" component={Watchlist} />
           <Route path="/optionData" component={OptionData} />
           <Route path="/optionDataTotal" component={OptionDataTotal} />
+          <Route path="/optionChain" component={OptionChain} />
+          <Route path="/test" component={Test} />
+          <Route path="/portfolio" component={Portfolio} />
           {/* <Route path="/comparision" component={Comparision} /> */}
           <Route path="/user" component={User} />
         </div>

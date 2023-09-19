@@ -1,52 +1,57 @@
 import React, { PureComponent } from 'react';
-import Highcharts from 'highcharts/highstock';
+import Highcharts, { isArray } from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import axios from 'axios';
 
-const getOptionTotal = (arr) => {
-    const min = 0;
-    const max = 12;
-    if (!arr) return null;
-    let total = 0;
-    for (let i=min; i<max; i++) {
-        total +=arr[i];
-    }
-    return total;
-};
+// const getOptionTotal = (arr) => {
+//     const min = 0;
+//     const max = 12;
+//     if (!arr) return null;
+//     let total = 0;
+//     for (let i=min; i<max; i++) {
+//         total +=arr[i];
+//     }
+//     return total;
+// };
 
-const getOptionTotal2 = (arr) => {
-    const min = 6;
-    const max = 12;
-    if (!arr) return null;
-    let total = 0;
-    for (let i=min; i<max; i++) {
-        total +=arr[i];
-    }
-    return total;
-};
+// const getOptionTotal2 = (arr) => {
+//     const min = 6;
+//     const max = 12;
+//     if (!arr) return null;
+//     let total = 0;
+//     for (let i=min; i<max; i++) {
+//         total +=arr[i];
+//     }
+//     return total;
+// };
 
-const getOptionTotal3 = (arr) => {
-    const min = 0;
-    const max = 6;
-    if (!arr) return null;
-    let total = 0;
-    for (let i=min; i<max; i++) {
-        total +=arr[i];
-    }
-    return total;
-};
+// const getOptionTotal3 = (arr) => {
+//     const min = 0;
+//     const max = 6;
+//     if (!arr) return null;
+//     let total = 0;
+//     for (let i=min; i<max; i++) {
+//         total +=arr[i];
+//     }
+//     return total;
+// };
 
 let counter = 0;
 
-export default class OptionData extends PureComponent {
+export default class OptionChain extends PureComponent {
+    localData = {
+        fromDate: null,
+        toDate: null
+    }
     constructor() {
         super();
         this.state = {
             type: 'nifty',
             stockSymbol: 'RELIANCE',
-            selectedTimeIndex: 2
+            selectedTimeIndex: 2,
         };
         this.getApiData();
+        this.apiData2 = [];
         // setInterval(this.getApiData, 1 * 60 * 1000);
         // this.getNseHtml('http://localhost:8080/api/getNseHtml');
     }
@@ -100,21 +105,39 @@ export default class OptionData extends PureComponent {
     //     this.apiData = response.data;
     //     this.setState({ apiSuccess: true });
     // }
+    getFormattedDate = (d, start) => {
+        return start ? d : `${d}T23:59:59Z`;
+    }
 
     getApiData = async() => {
         this.setState({ apiSuccess: false });
         const { type, stockSymbol } = this.state;
         const dynamicQs = type === 'stock' ? `&stockSymbol=${stockSymbol}` : '';
-        const apiUrl = `http://localhost:8080/api/getOptionData?type=${this.state.type}`;
-        const apiUrl2 = `http://localhost:8080/api/getOptionDataArray?type=${this.state.type}${dynamicQs}`;
-        Promise.all([axios.get(apiUrl), axios.get(apiUrl2)]).then((response) => {
-            this.apiData = response[0].data;
-            this.apiData2 = response[1].data;
+        const fromDate = this.getFormattedDate(this.localData.fromDate, 0);
+        const toDate = this.getFormattedDate(this.localData.toDate, 1);
+        if (!fromDate || !toDate) {
+            return false;
+        }
+        // const apiUrl = `http://localhost:8080/api/getOptionData?type=${this.state.type}`;
+        // const apiUrl2 = `http://localhost:8080/api/getOptionDataArray?type=${this.state.type}${dynamicQs}`;
+        // Promise.all([axios.get(apiUrl), axios.get(apiUrl2)]).then((response) => {
+        //     this.apiData = response[0].data;
+        //     this.apiData2 = response[1].data;
+        //     this.setState({ apiSuccess: true });
+        // },(err1, err2) => {
+        //     console.log('Error in API', err1, err2);
+        //     this.setState({ apiSuccess: true });
+        // })
+
+        const apiUrl = `http://localhost:8080/api/getOptionDataArray?type=${this.state.type}${dynamicQs}&fromDate=${fromDate}&toDate=${toDate}`;
+        Promise.all([axios.get(apiUrl)]).then((response) => {
+            this.apiData2 = response[0].data.slice();
             this.setState({ apiSuccess: true });
-        },(err1, err2) => {
-            console.log('Error in API', err1, err2);
+        },(err) => {
+            console.log('Error in API', err);
             this.setState({ apiSuccess: true });
         })
+
         // const response = await axios.get(apiUrl);
         // this.apiData = response.data;
         // this.setState({ apiSuccess: true });
@@ -173,11 +196,12 @@ export default class OptionData extends PureComponent {
     //     this.redraw();
     // }
 
-    renderChart = () => {
+    renderChart = (seriesType, seriesIndex) => {
         const _this = this;
         const options = {
             chart: {
-                height: '1200',
+                // height: '540',
+                // width: '540',
                 events: {
                     load: function() {
                         console.log('hi');
@@ -198,7 +222,8 @@ export default class OptionData extends PureComponent {
             },
         
             time: {
-                useUTC: false
+                useUTC: false,
+                timezoneOffset: 5.5 * 60
             },
         
             rangeSelector: {
@@ -247,7 +272,23 @@ export default class OptionData extends PureComponent {
             },
         
             title: {
-                text: `Live ${this.state.type} ${this.state.type === 'stock' ? `${this.state.stockSymbol}` : ''} option data`
+                // text: `${this.state.type} ${this.state.type === 'stock' ? `${this.state.stockSymbol}` : ''} ${ seriesType } data`
+                text: (() => {
+                    // return 'test'
+                    if (!_this.apiData2.length) {
+                        return '';
+                    }
+                    if (seriesType === 'SPOT') {
+                        return `${this.state.type} ${this.state.type === 'stock' ? `${this.state.stockSymbol}` : ''} ${seriesType}`;
+                    }
+                    const lastIndex = _this.apiData2.length - 1;
+                    const underlyingValue = _this.apiData2[lastIndex].underlyingValue;
+                    const baseValue = Math.floor(underlyingValue/100) * 100;
+                    const baseIndex = _this.apiData2[lastIndex].strikeArray.findIndex(item => item === baseValue);                    
+                    const targetIndex = baseIndex - 1 + seriesIndex;
+                    const targetStrike = _this.apiData2[lastIndex].strikeArray[targetIndex];
+                    return `${this.state.type} ${this.state.type === 'stock' ? `${this.state.stockSymbol}` : ''} ${seriesType} - ${targetStrike}`;
+                })()
             },
         
             exporting: {
@@ -255,155 +296,46 @@ export default class OptionData extends PureComponent {
             },
         
             series: [{
-                name: 'call data',
+                name: `${seriesType} - ${seriesIndex}`,
                 yAxis: 0,
                 data: (function () {
                     var data = [];
-                    if (!_this.apiData2) {
+                    if (!_this.apiData2.length) {
                         return data;
                     }
+                    const underlyingValue = _this.apiData2[_this.apiData2.length - 1].underlyingValue;
+                    const baseValue = Math.floor(underlyingValue/100) * 100;
+                    
                     for (var i = 0; i <= _this.apiData2.length; i += 1) {
                         if (_this.apiData2[i]) {
-                            const time = Number(_this.apiData2[i].timestamp);
-                            // const callTotal = Number(_this.apiData[i].putTotal) - Number(_this.apiData[i].callTotal);
-                            // const callTotal = Number(_this.apiData[i].callTotal);
-                            const callTotal = getOptionTotal(_this.apiData2[i].callArray);
-                            data.push([
-                                time,
-                                callTotal / 2,
-                            ]);
+                            // const time = Number(_this.apiData2[i].timestamp);
+                            const time = _this.apiData2[i].timestamp;
+                            if (seriesType === 'SPOT') {
+                                const spot = _this.apiData2[i].underlyingValue;
+                                data.push([
+                                    new Date(time).toLocaleString({timeZone: 'Asia/Kolkata'}),
+                                    +spot || null,
+                                ]);
+                            }
+                            else {
+                                const targetSeries = seriesType === 'CE' ? _this.apiData2[i].callArray : _this.apiData2[i].putArray;                            
+                                const baseIndex = _this.apiData2[i].strikeArray.findIndex(item => item === baseValue);
+                                const targetIndex = baseIndex - 1 + seriesIndex
+                                const openInterest = targetSeries[targetIndex];
+                                data.push([
+                                    new Date(time).toLocaleString({ timeZone: 'Asia/Kolkata' }),
+                                    openInterest,
+                                ]);
+                            }
                         }
                     }
                     return data;
                 }())
-            },{
-                name: 'put data',
-                yAxis: 0,
-                data: (function () {
-                    var data = [];
-                    if (!_this.apiData2) {
-                        return data;
-                    }
-                    for (var i = 0; i <= _this.apiData2.length; i += 1) {
-                        if (_this.apiData2[i]) {
-                            const time = Number(_this.apiData2[i].timestamp);
-                            // const putTotal = 3 * Number(_this.apiData[i].putTotal);
-                            const putTotal = getOptionTotal(_this.apiData2[i].putArray);
-                            data.push([
-                                time,
-                                putTotal / 2,
-                            ]);
-                        }
-                    }
-                    return data;
-                }())
-            },{
-            //     name: 'call + put data',
-            //     data: (function () {
-            //         var data = [];
-            //         if (!_this.apiData) {
-            //             return data;
-            //         }
-            //         for (var i = 0; i <= _this.apiData.length; i += 1) {
-            //             if (_this.apiData[i]) {
-            //                 const time = Number(_this.apiData[i].timestamp);
-            //                 const putTotal = Number(_this.apiData[i].callTotal) + Number(_this.apiData[i].putTotal);
-            //                 data.push([
-            //                     time,
-            //                     putTotal,
-            //                 ]);
-            //             }
-            //         }
-            //         return data;
-            //     }())
-            // },{
-                name: 'call - put data',
-                yAxis: 0,
-                data: (function () {
-                    var data = [];
-                    if (!_this.apiData2) {
-                        return data;
-                    }
-                    for (var i = 0; i <= _this.apiData2.length; i += 1) {
-                        if (_this.apiData2[i]) {
-                            const time = Number(_this.apiData2[i].timestamp);
-                            // const total = Number(_this.apiData[i].callTotal) - Number(_this.apiData[i].putTotal);
-                            const total = getOptionTotal(_this.apiData2[i].callArray) - getOptionTotal(_this.apiData2[i].putArray);
-                            data.push([
-                                time,
-                                total,
-                            ]);
-                        }
-                    }
-                    return data;
-                }())
-            },{
-                name: 'call - put data - 2',
-                yAxis: 0,
-                data: (function () {
-                    var data = [];
-                    if (!_this.apiData2) {
-                        return data;
-                    }
-                    for (var i = 0; i <= _this.apiData.length; i += 1) {
-                        if (_this.apiData2[i]) {
-                            const time = Number(_this.apiData2[i].timestamp);
-                            // const total = Number(_this.apiData[i].callTotal2) - Number(_this.apiData[i].putTotal2);
-                            const total = getOptionTotal2(_this.apiData2[i].callArray) - getOptionTotal2(_this.apiData2[i].putArray);
-                            data.push([
-                                time,
-                                total,
-                            ]);
-                        }
-                    }
-                    return data;
-                }())
-            },{
-                name: 'call - put data - 3',
-                yAxis: 0,
-                data: (function () {
-                    var data = [];
-                    if (!_this.apiData2) {
-                        return data;
-                    }
-                    for (var i = 0; i <= _this.apiData2.length; i += 1) {
-                        if (_this.apiData2[i]) {
-                            const time = Number(_this.apiData2[i].timestamp);
-                            // const total = Number(_this.apiData[i].callTotal2) - Number(_this.apiData[i].putTotal2);
-                            const total = getOptionTotal3(_this.apiData2[i].callArray) - getOptionTotal3(_this.apiData2[i].putArray);
-                            data.push([
-                                time,
-                                total,
-                            ]);
-                        }
-                    }
-                    return data;
-                }())
-            // },{
-            //     name: _this.state.type.toUpperCase(),
-            //     yAxis: 1,
-            //     data: (function () {
-            //         var data = [];
-            //         if (!_this.apiData2) {
-            //             return data;
-            //         }
-            //         for (var i = 0; i <= _this.apiData2.length; i += 1) {
-            //             if (_this.apiData2[i]) {
-            //                 const time = Number(_this.apiData2[i].timestamp);
-            //                 const underlyingValue = Number(_this.apiData2[i].underlyingValue);
-            //                 data.push([
-            //                     time,
-            //                     underlyingValue,
-            //                 ]);
-            //             }
-            //         }
-            //         return data;
-            //     }())
             }],
             yAxis: [{}, {}]
         };
         return (
-            <div style={{height: '800px'}}>
+            <div style={{height: '500px', width: '380px', display: 'inline-block'}}>
                 <HighchartsReact
                     highcharts={Highcharts}
                     constructorType='stockChart'
@@ -416,7 +348,15 @@ export default class OptionData extends PureComponent {
     render() {
         return (
             <div>
+                <div>
+                    From:
+                    <input type="date" onChange={(e) => { this.localData.fromDate = e.target.value }} />
+                    To:
+                    <input type="date" onChange={(e) => { this.localData.toDate = e.target.value }} />
+                    <button onClick={this.getApiData}>UpdateData</button>
+                </div>
                 <div dangerouslySetInnerHTML={{__html: this.state.nseHtml}}></div>
+                <div>Nifty Spot: {this.apiData2[this.apiData2.length - 1]?.underlyingValue}</div>
                 <div style={{height: 0, overflow: 'visible', float: 'right', zIndex: 9, position: 'relative', right: '220px'}}>
                     <button style={{ fontWeight: this.state.type === 'nifty' ? 'bold' : 'auto' }} onClick={() => this.updateChart('nifty')}>Nifty</button>
                     <button style={{ fontWeight: this.state.type === 'bank_nifty' ? 'bold' : 'auto' }} onClick={() => this.updateChart('bank_nifty')}>Bank Nifty</button>
@@ -430,7 +370,31 @@ export default class OptionData extends PureComponent {
                 {!this.state.apiSuccess && <div>
                     Loading...
                 </div>}
-                {this.state.apiSuccess && this.renderChart()}
+                {this.state.apiSuccess && this.renderChart('SPOT', 0)}
+                {this.state.apiSuccess && this.renderChart('SPOT', 0)}
+                {this.state.apiSuccess && this.renderChart('SPOT', 0)}
+                {this.state.apiSuccess && this.renderChart('SPOT', 0)}
+                {this.state.apiSuccess && this.renderChart('SPOT', 0)}
+                {this.state.apiSuccess && this.renderChart('SPOT', 0)}
+                {this.state.apiSuccess && this.renderChart('SPOT', 0)}
+                
+                {this.state.apiSuccess && this.renderChart('CE', -1)}
+                {this.state.apiSuccess && this.renderChart('CE', 0)}
+                {this.state.apiSuccess && this.renderChart('CE', 1)}
+                {this.state.apiSuccess && this.renderChart('CE', 2)}
+                {this.state.apiSuccess && this.renderChart('CE', 3)}
+                {this.state.apiSuccess && this.renderChart('CE', 4)}
+                {this.state.apiSuccess && this.renderChart('CE', 5)}
+                {/* {this.state.apiSuccess && this.renderChart('CE', 5)} */}
+
+                {this.state.apiSuccess && this.renderChart('PE', -1)}
+                {this.state.apiSuccess && this.renderChart('PE', 0)}
+                {this.state.apiSuccess && this.renderChart('PE', 1)}
+                {this.state.apiSuccess && this.renderChart('PE', 2)}
+                {this.state.apiSuccess && this.renderChart('PE', 3)}
+                {this.state.apiSuccess && this.renderChart('PE', 4)}
+                {this.state.apiSuccess && this.renderChart('PE', 5)}
+                {/* {this.state.apiSuccess && this.renderChart('PE', 5)} */}
             </div>
         );
     }

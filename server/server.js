@@ -28,6 +28,8 @@ app.use(cors());
 app.use(express.static(path.resolve(__dirname, 'build')));
 // app.use(express.static('build'));
 
+let sseRes = null;
+
 app.get('/index', (req, res) => {
   res.sendFile('index.html', {root: __dirname});
 });
@@ -75,21 +77,22 @@ app.get('/searchCompany', (req, res) => {
 
 app.get('/api/bseReturn', (req, res) => {
   // const data = req.query.data;
-  const url = 'https://www.bloombergquint.com/feapi/markets/indices/historical-returns?tab=bse';
-  https.get(url, (resp) => {
-      let data = '';
+  // const url = 'https://www.bloombergquint.com/feapi/markets/indices/historical-returns?tab=bse';
+  // https.get(url, (resp) => {
+  //     let data = '';
 
-      resp.on('data', (chunk) => {
-          data += chunk;
-      });
+  //     resp.on('data', (chunk) => {
+  //         data += chunk;
+  //     });
 
-      resp.on('end', () => {
-          res.send(JSON.parse(data));
-      });
+  //     resp.on('end', () => {
+  //         res.send(JSON.parse(data));
+  //     });
 
-  }).on("error", (err) => {
-      console.log("Error: " + err.message);
-  });
+  // }).on("error", (err) => {
+  //     console.log("Error: " + err.message);
+  // });
+  res.send({ data: [] });
 })
 
 app.get('/historicalData', (req, res) => {
@@ -111,7 +114,7 @@ app.get('/historicalData', (req, res) => {
         console.log("Error: " + err.message);
     });
   } catch (e) {
-    res.status(500).send('Invalid request');
+    res.status(500).send('Invalid request for ', companyId);
   }
 })
 
@@ -203,6 +206,48 @@ var companyListSchema = new mongoose.Schema({
 
 mongoose.model('company_list', companyListSchema);
 
+var portfolioSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
+  stock: {
+    type: String,
+    required: true,
+  },
+  buyDate: {
+    type: Date,
+    required: true,
+  },
+  sellDate: {
+    type: Date,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+  },
+  buyPrice: {
+    type: Number,
+    required: true,
+  },
+  sellPrice: {
+    type: Number,
+  },
+  comments: {
+    type: String
+  },
+  isOpen: {
+    type: Boolean,
+    required: true,
+  },
+  userId: {
+    type: String,
+    required: true,
+  }
+});
+
+mongoose.model('portfolio', portfolioSchema);
+
 var optionNiftySchema = new mongoose.Schema({
   _id: {
     type: String,
@@ -233,21 +278,65 @@ var optionNiftySchema = new mongoose.Schema({
 mongoose.model('option_nifty', optionNiftySchema);
 mongoose.model('option_bank_nifty', optionNiftySchema);
 
-// Save the new model instance, passing a callback
-// watchlistModel.save(function (err) {
-//   if (err) console.log('schema error');
-// });
+var optionNiftyArraySchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
+  timestamp: {
+    type: Date,
+    required: true,
+  },
+  callArray: {
+    type: Array,
+    required: true,
+  },
+  putArray: {
+    type: Array,
+    required: true,
+  },
+  strikeArray: {
+    type: Array,
+    required: true,
+  },
+  underlyingValue: {
+    type: String,
+    required: false,
+  }
+});
 
-// const dbConfig={
-//   "uri": "127.0.0.1",
-//   "port": "27017",
-//   "options": {
-//     "useNewUrlParser": true,
-//     "poolSize": 5,
-//     "connectTimeoutMS": 1000
-//   },
-//   "name": "testdb"
-// };
+mongoose.model('option_nifty_array', optionNiftyArraySchema);
+mongoose.model('option_bank_nifty_array', optionNiftyArraySchema);
+
+var optionStockArraySchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
+  timestamp: {
+    type: Number,
+    required: true,
+  },
+  callArray: {
+    type: Array,
+    required: true,
+  },
+  putArray: {
+    type: Array,
+    required: true,
+  },
+  underlyingValue: {
+    type: String,
+    required: false,
+  },
+  stockSymbol: {
+    type: String,
+    required: true
+  }
+});
+
+mongoose.model('option_stock_array', optionStockArraySchema);
+
 
 const dbConfig = {
   options: {
@@ -410,6 +499,37 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
+  app.post('/api/portfolio/company', (req, res) => {
+    req.body._id = ObjectId().toString();
+    db.collection('portfolio').insertOne(req.body, (err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send({data});
+    });
+  });
+
+  app.put('/api/portfolio/company', (req, res) => {
+    // req.body._id = ObjectId().toString();
+    db.collection('portfolio').updateOne({ _id: req.body._id }, {$set: req.body}, (err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send({data});
+    });
+  });
+
+  app.get('/api/portfolio/:userId/:positionType', (req, res) => {
+    // const query = {userId: req.params.userId, isOpen: req.params.type === 'open' ? true : false};
+    const query = {userId: req.params.userId, isOpen: req.params.positionType === 'open' ? true : false};
+    db.collection('portfolio').find(query).toArray((err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send(data);
+    });
+  });
+
   app.put('/api/company/:companyId', (req, res) => {
     const companyId = req.params.companyId;
     db.collection('company_list').updateOne({_id: companyId}, {$set: req.body}, (err, data) => {
@@ -430,8 +550,27 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
+  // function countdown(res, count) {
+  //   res.write("data: " + count + "\n\n")
+  //   if (count)
+  //     setTimeout(() => countdown(res, count-1), 2000)
+  //   else
+  //     res.end();
+  // }
+
+  app.get('/api/countdown', function(req, res) {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive'
+    })
+    sseRes = res;
+    sseRes.write("data: " + 1 + "\n\n")
+    // countdown(res, 10)
+  })
+  
   app.get('/api/setOptionData', (req, res) => {
-    const { callTotal, putTotal, callTotal2, putTotal2, timestamp, type } = req.query;
+    const { callTotal, putTotal, callTotal2, putTotal2, timestamp, type = '' } = req.query;
     const data = {
       _id: ObjectId().toString(),
       callTotal,
@@ -443,10 +582,9 @@ mongoose.connect(dbUrl, dbConfig.options)
     // const companyId = req.params.companyId;
     // res.status(200).send({message: 'works'});
     let collectionName = 'option_nifty';
-    if (type === 'bank_nifty') {
+    if (type.toLocaleLowerCase() === 'bank_nifty') {
       collectionName = 'option_bank_nifty';
     }
-    // db.collection('option_bank_nifty').insertOne(data, (err, data) => {
     db.collection(collectionName).insertOne(data, (err, data) => {
       if (err) {
         return res.status(500).send(err);
@@ -455,13 +593,64 @@ mongoose.connect(dbUrl, dbConfig.options)
     });
   });
 
+  app.get('/api/setOptionDataArray', (req, res) => {
+    const { callArray, putArray, strikeArray, type = 'nifty', underlyingValue, stockSymbol } = req.query;
+    const data = {
+      _id: ObjectId().toString(),
+      callArray: JSON.parse(callArray),
+      putArray: JSON.parse(putArray),
+      strikeArray: JSON.parse(strikeArray),
+      timestamp: new Date(),
+      underlyingValue,
+    }
+    // sseRes && sseRes.write("data: " + JSON.stringify(req.query) + "\n\n");
+      
+    // const companyId = req.params.companyId;
+    // res.status(200).send({message: 'works'});
+    let collectionName = 'option_nifty_array';
+    if (type.toLocaleLowerCase() === 'bank_nifty') {
+      collectionName = 'option_bank_nifty_array';
+    } else if (type.toLocaleLowerCase() === 'stock') {
+      collectionName = 'option_stock_array';
+      data.stockSymbol = stockSymbol;
+    }
+    db.collection(collectionName).insertOne(data, (err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      // sseRes.write("data: " + JSON.stringify(data.ops[0]) + "\n\n")
+      // res.end();
+      res.status(200).send({data});
+    });
+  });
+
   app.get('/api/getOptionData', (req, res) => {
-    const { type } = req.query;
+    const { type = '' } = req.query;
     let collectionName = 'option_nifty';
-    if (type === 'bank_nifty') {
+    if (type.toLocaleLowerCase() === 'bank_nifty') {
       collectionName = 'option_bank_nifty';
     }
     db.collection(collectionName).find({}).toArray((err, data) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(200).send(data);
+    });
+  });
+
+  app.get('/api/getOptionDataArray', (req, res) => {
+    const { type = '', stockSymbol, fromDate, toDate } = req.query;
+    let collectionName = 'option_nifty_array';
+    // const dbQuery = {};
+    const dbQuery = { $and: [{timestamp: { $gte: new Date(fromDate) }}, {timestamp: { $lte: new Date(toDate) }}] };
+    if (type.toLocaleLowerCase() === 'bank_nifty') {
+      collectionName = 'option_bank_nifty_array';
+    } else if (type.toLocaleLowerCase() === 'stock') {
+      collectionName = 'option_stock_array';
+      dbQuery.stockSymbol = stockSymbol;
+    }
+    
+    db.collection(collectionName).find(dbQuery).toArray((err, data) => {
       if (err) {
         return res.status(500).send(err);
       }

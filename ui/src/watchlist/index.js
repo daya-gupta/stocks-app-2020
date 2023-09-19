@@ -77,14 +77,14 @@ class Watchlist extends React.PureComponent {
                 companyList.forEach((element, index) => {
                     const priceVolumeDataItem = priceVolumeData[2 * index];
                     const priceVolumeDataItem1 = priceVolumeData[2 * index + 1];
-                    const price = [...priceVolumeDataItem.data.datasets[0].values.map(item => Number(item[1]))];
-                    const price1 = [...priceVolumeDataItem1.data.datasets[0].values.map(item => Number(item[1]))];
+                    const price = !priceVolumeDataItem.data.datasets[0] ? [] : [...priceVolumeDataItem.data.datasets[0]?.values.map(item => Number(item[1]))];
+                    const price1 = !priceVolumeDataItem1.data.datasets[0] ? [] :[...priceVolumeDataItem1.data.datasets[0].values.map(item => Number(item[1]))];
                     const lastPrice = price1.pop();
                     const secondLastPrice = price1.pop();
                     price.splice(price.length - 1, 1, secondLastPrice, lastPrice);
 
-                    const volume = [...priceVolumeDataItem.data.datasets[1].values.map(item => Number(item[1]))];
-                    const volume1 = [...priceVolumeDataItem1.data.datasets[1].values.map(item => Number(item[1]))];
+                    const volume = !priceVolumeDataItem.data.datasets[1] ? [] :[...priceVolumeDataItem.data.datasets[1].values.map(item => Number(item[1]))];
+                    const volume1 = !priceVolumeDataItem1.data.datasets[1] ? [] : [...priceVolumeDataItem1.data.datasets[1].values.map(item => Number(item[1]))];
                     const lastVolume = volume1.pop();
                     const secondLastVolume = volume1.pop();
                     volume.splice(volume.length - 1, 1, secondLastVolume, lastVolume);
