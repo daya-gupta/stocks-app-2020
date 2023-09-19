@@ -9,7 +9,7 @@ import Watchlist from './watchlist';
 import OptionData from './optionData';
 import OptionDataTotal from './optionData/optionDataTotal';
 import OptionChain from './optionData/optionChain';
-import Test from './test';
+import AdTimer from './adTimer';
 // import Comparision from './comparision';
 import User from './user';
 import Loader from './common/components/loader';
@@ -39,7 +39,7 @@ function App({ common }) {
           <Route path="/optionData" component={OptionData} />
           <Route path="/optionDataTotal" component={OptionDataTotal} />
           <Route path="/optionChain" component={OptionChain} />
-          <Route path="/test" component={Test} />
+          <Route path="/ad-timer" component={AdTimer} />
           <Route path="/portfolio" component={Portfolio} />
           {/* <Route path="/comparision" component={Comparision} /> */}
           <Route path="/user" component={User} />
