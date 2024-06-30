@@ -67,7 +67,7 @@ const Portfolio = () => {
     const handleRemoveStock = (item, index) => {
         setShowRemoveStockForm(true);
         // populate item in remove form
-        setRemoveStockForm({...item, rowIndex: index});
+        setRemoveStockForm({...item, sellPrice: item.currentPrice, sellDate: new Date(), rowIndex: index});
     }
 
     const renderPortfolioTable = (data, isOpen) => {
@@ -115,10 +115,13 @@ const Portfolio = () => {
         // handle validation
         const newFormState = {...addStockForm, [type]: event.target.value};
         setAddStockForm(newFormState);
+        
     }
 
     const handleAddStock = () => {
         setShowAddStockForm(true);
+        const newFormState = {...addStockForm, buyDate: new Date()};
+        setAddStockForm(newFormState);
     }
 
     const handleAddStockConfirm = () => {
@@ -310,7 +313,8 @@ const Portfolio = () => {
             {showRemoveStockForm && renderRemoveStockForm()}
             {showRemoveStockForm && <hr />}
             <div>
-                <button disabled={showAddStockForm} className='pull-right' onClick={handleAddStock}>Add stock</button>
+                {/* <button disabled={showAddStockForm} className='pull-right' onClick={handleAddStock}>Add stock</button> */}
+                <button className='pull-right' onClick={handleAddStock}>{showAddStockForm ? 'Close (X)' : 'Show Add Stock Form'}</button>
             </div>
         
             {showAddStockForm && renderAddStockForm()}
