@@ -51,7 +51,7 @@ class WatchlistToggler extends React.PureComponent {
       const activeWatchlistName = activeWatchlist.name;
       return (
         <div className="pull-right toggleWatchlistContainer">
-          <button className="custom-button" onClick={this.toggleWatchlistContainer}>Watchlist: <b>{activeWatchlistName}</b></button>
+          <button className="custom-button" style={{fontSize: '16px', margin: '10px'}} onClick={this.toggleWatchlistContainer}>Watchlist: <b>{activeWatchlistName}</b></button>
           {this.state.toggleWatchlistContainer && 
             <div className="listContainer">
               <ul style={{paddingLeft: '20px'}}>

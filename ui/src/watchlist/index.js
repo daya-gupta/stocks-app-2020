@@ -155,11 +155,16 @@ class Watchlist extends React.PureComponent {
         return priceChange;
     }
 
-    getAveragePriceChange = (watchlistData) => {
+    getAveragePriceChange = (watchlistData, compareView) => {
+        let watchlistDataLocal = [...watchlistData];
+        if (compareView) {
+            watchlistDataLocal = watchlistData.filter(item => item.checked);
+        } 
+
         const weeks = this.state.weeksArr;
         const averagePriceChange = [];
         for (const w of weeks) {
-            averagePriceChange[w] = calculateAveragePriceChange(watchlistData, w);
+            averagePriceChange[w] = calculateAveragePriceChange(watchlistDataLocal, w);
         }
         return averagePriceChange;
     }
@@ -185,8 +190,12 @@ class Watchlist extends React.PureComponent {
     }
 
     compare = (param) => {
+        // this.setState({
+        //     compare: param
+        // });
         this.setState({
-            compare: param
+            compare: param,
+            averagePriceChange: this.getAveragePriceChange(this.state.watchlistData, param),
         });
         // if (!param) {
         //     const { watchlist, watchlistData } = this.localData;
@@ -323,7 +332,7 @@ class Watchlist extends React.PureComponent {
             // if (!value || !valueIndex) { return null; }
             if (!value) { return null; }
             const label = weeksArrayMapper[counter++].label;
-            const bseReturn = (this.state.bseReturn || {})[label] || 'NA';
+            // const bseReturn = (this.state.bseReturn || {})[label] || 'NA';
             return (
                 <th key={value}>
                     <div onClick={() => this.sortBy(`priceChange.${valueIndex}`, true)}>
@@ -331,8 +340,8 @@ class Watchlist extends React.PureComponent {
                         <br />
                         {localData.showOverallReturn && <span>
                             <span>{value}%</span>
-                            <br />
-                            <span>[{bseReturn}%]</span>
+                            {/* <br /> */}
+                            {/* <span>[{bseReturn}%]</span> */}
                         </span>}
                     </div>
                 </th>
@@ -395,17 +404,17 @@ class Watchlist extends React.PureComponent {
                 <thead>
                     <tr>
                         <th>
-                            <Form.Check type='checkbox' checked={masterCheckboxValue} onChange={this.handleCheckboxChange} />    
+                            <Form.Check type='checkbox' className='checkbox-row-select' checked={masterCheckboxValue} onChange={this.handleCheckboxChange} />    
                         </th>
                         <th><span onClick={() => this.sortBy('color')}>Color</span></th>
                         <th><span onClick={() => this.sortBy('score', true)}>Score</span></th>
-                        <th style={{width: '20%'}}>
+                        <th style={{minWidth: '160px'}}>
                             <span onClick={() => this.sortBy('name')}>Company</span>
                         </th>
                         {this.renderHeaders(averagePriceChange)}
                         {/* <th>Volume <small>(%change)</small></th> */}
                         {!chartWidth && <th>Delete</th>}
-                        <th style={{width: '100%'}}>Chart</th>
+                        {/* <th style={{width: '100%'}}>Chart</th> */}
                     </tr>
                 </thead>
                 <tbody>
@@ -438,16 +447,18 @@ class Watchlist extends React.PureComponent {
         const activeWatchlist = this.props.common.activeWatchlist || {};
         return (
             <div>
-                <h4>{activeWatchlist.name} Watchlist ({count} stocks)</h4>
-                <button onClick={() => this.changeChartWidth()}>
-                    Change Chart Width
-                </button>
-                {/* <Link to={{pathname: `/comparision`}}>
-                    <button className="btn">Compare selected stocks &gt;</button>
-                </Link> */}
-                {this.renderCompareView()}
+                <h4>
+                    <span style={{textTransform: 'capitalize'}}>{activeWatchlist.name} Portfolio ({count} stocks)</span>
+                </h4>
+                <h6>*Returns are cumulative and mentioned in perecntage.</h6>
+                {/* <div>
+                    <button onClick={() => this.changeChartWidth()}>
+                        Change Chart Width
+                    </button>
+                    {this.renderCompareView()}
+                </div> */}
                 {this.renderWatchlist()}
-                {this.renderCompareView()}
+                {/* {this.renderCompareView()} */}
             </div>
         );
     }

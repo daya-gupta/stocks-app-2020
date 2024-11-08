@@ -53,7 +53,7 @@ class ColoredCircle extends React.PureComponent {
         return (
             <React.Fragment>
                 <button style={{ margin: '3px' }} className={className} onClick={this.toggleOptions}></button>
-                <button className="custom-button" onClick={this.toggleComment}>i</button>
+                <button className="custom-button fa fa-commenting-o" onClick={this.toggleComment}></button>
                 {showComment && <div style={{ width: 'auto' }} className="moreActions">
                     <button style={{ margin: '-6px, -6px, 0 0' }} className="custom-button pull-right" onClick={this.toggleComment}>&times;</button>
                     <h6 className="pull-left">{name}</h6>

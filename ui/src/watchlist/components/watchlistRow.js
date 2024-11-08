@@ -61,12 +61,13 @@ export default class WatchlistRow extends React.PureComponent {
       return (
           <tr key={index}>
               <td>
-                  <Form.Check type='checkbox' checked={checked} onChange={handleCheckboxChange} />
+                  <Form.Check className='checkbox-row-select' type='checkbox' checked={checked} onChange={handleCheckboxChange} />
               </td>
               <td>
                   <ColoredCircle updateCompany={updateCompany} company={company} moveStock={moveStock} />
               </td>
-              <td>{scoreR}, {scoreP}</td>
+              {/* <td>{scoreR}, {scoreP}</td> */}
+              <td></td>
               <td>
                   <a rel="noopener noreferrer" target="_blank" href={`https://www.screener.in${url}`}>
                       {name}
@@ -79,8 +80,13 @@ export default class WatchlistRow extends React.PureComponent {
                     const style = this.computeColorStyle(price, range);
                     return (
                         <td key={index} style={style}>
-                            {!index && <span>{item.price} &nbsp;</span>}
-                            {price} %
+                            {!index
+                                ?
+                                <span style={{ whiteSpace: 'nowrap' }}>
+                                    {item.price}&nbsp;({price}%)
+                                </span>
+                                :
+                                <span>{price}</span>}
                         </td>
                     );
                 })}

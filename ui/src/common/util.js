@@ -14,7 +14,8 @@ const initialStorageData = {
   }
 }
 
-export const weeksArray = [0, 1, 2, 4, 9, 13, 26, 52, 104, 156, 260, 500];
+// export const weeksArray = [0, 1, 2, 4, 9, 13, 26, 52, 104, 156, 260, 500];
+export const weeksArray = [0, 1, 2, 4, 9, 13, 26, 52, 104, 156, 260];
 
 export const weeksArrayMapper = [
   {w: 0, label: '1D'},
@@ -28,7 +29,7 @@ export const weeksArrayMapper = [
   {w: 104, label: '2Y'},
   {w: 156, label: '3Y'},
   {w: 260, label: '5Y'},
-  {w: 250, label: 'RS'},
+  // {w: 250, label: 'RS'},
 ];
 
 export const getStorageData = () => {

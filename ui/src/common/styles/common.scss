@@ -15,6 +15,10 @@
 //     }
 // }
 
+.table td, .table th {
+    border: 1px solid #ccc;
+}
+
 .error-bar {
     padding: 10px 17px;
     background-color: #ffe188;
@@ -54,10 +58,17 @@
 .custom-button {
   border: 0;
   background: transparent;
+  box-shadow: 0px 0px;
+}
+
+button {
+    border-radius: 4px !important;
+    background-color: #f1f3f5;
+    box-shadow: 1px 1px #b4aeae;
 }
 
 .toggleWatchlistContainer {
-    font-size: 11px;
+    // font-size: 11px;
     li {
         text-align: left;
         padding: 4px;
